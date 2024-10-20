@@ -9,10 +9,7 @@ variable_name_dict = {
     "tas": "2m_temperature",
     "tasmax": "maximum_2m_temperature_since_previous_post_processing",
     "tasmin": "minimum_2m_temperature_since_previous_post_processing",
-    "pr": "total_precipitation",
-    "hur":"",
-    "rsds":"downward_uv_radiation_at_the_surface",
-    "sfcWind":"",   
+    "pr": "total_precipitation",  
 }
 
 variable_rename_dict = {
@@ -21,17 +18,14 @@ variable_rename_dict = {
 
 statistic_dict = {
     "tas": "daily_mean",
-    "tasmax": "daily_max",
-    "tasmin": "daily_min",
+    "tasmax": "daily_maximum",
+    "tasmin": "daily_minimum",
     "pr": "daily_mean",
-    "hur":"daily_mean",
-    "rsds":"daily_mean",
-    "sfcWind":"daily_mean", 
 }
 
 
 train_start_year = 1961
-train_end_year = 1978
+train_end_year = 2020
 train_years = [str(year) for year in range(train_start_year, train_end_year + 1)]
 train_months = [f"{month:02d}" for month in range(1, 13)]
 train_days = [f"{day:02d}" for day in range(1, 32)]
@@ -65,6 +59,3 @@ def retrieve_era5_data(key: str, year: str):
     }
     
     return client.retrieve(dataset, request)
-    
-if __name__ == "__main__":
-    get_era5_data("tas")

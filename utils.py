@@ -8,8 +8,12 @@ from cartopy.io.shapereader import Reader
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import numpy as np
 import re
-
-from config import era5_data_dir, result_data_dir
+from config import  (
+    era5_data_dir,
+    result_data_dir,
+    base_start_year, 
+    base_end_year
+)
 
 geojson_path = "D:/CMIP6/DataV_GeoJSON/geojson/province/650000.json"
 
@@ -25,13 +29,23 @@ def get_era5_data_path(variable: str, year: str):
     return f"{era5_data_dir}/{variable}_era5_daily_{year}.nc"
 
 def load_era5_daily_tas_data(year: str):
-    return xr.open_dataset(get_era5_data_path('tas', year))
+    return load_era5_daily_data('tas', year)
+
+def load_era5_daily_data(variable: str, year: str):
+    return xr.open_dataset(get_era5_data_path(variable, year))
 
 def range_era5_data(process):
     for file in Path(era5_data_dir).rglob('*_era5_daily_*.nc'):
         if file.is_file():
             process(file)
-                 
+
+def merge_base_years(variable: str) -> xr.Dataset:
+    datesets = []
+    for year in range(base_start_year, base_end_year + 1):
+        datesets.append(load_era5_daily_data(variable, str(year)))
+    
+    return xr.concat(datesets, dim='valid_time')
+
 def get_result_data_path(variable: str, year: str):
     return f"{result_data_dir}/{variable}_era5_{year}.csv"
 
