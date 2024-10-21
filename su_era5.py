@@ -13,11 +13,11 @@ import cartopy.crs as ccrs
 from xclim.indices import maximum_consecutive_tx_days
 # SU, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25oC.
 def process_su(file: Path):
-    if not file.name.startswith('tasmax_'):
+    if not file.name.startswith('tas_'):
         return
     ds = xr.open_dataset(file).rename({"valid_time": "time"})
     su = maximum_consecutive_tx_days(ds['t2m'], freq="YS")
-    su.rename({"t2m": "su"}).to_dataframe().to_csv(
+    su.to_dataframe().to_csv(
         get_result_data_path('su', get_year_from_path(file.name)))
     return su
 
