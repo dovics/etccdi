@@ -1,6 +1,18 @@
-era5_data_dir = "era5_data"
+import os
 
+era5_data_dir = "era5_data"
 result_data_dir = "result_data"
 
-base_start_year = 1981 # TODO: change to 1961
-base_end_year = 2000 # TODO: change to 1990
+start_year = 1980
+end_year = 2020
+
+base_start_year = 1980
+base_end_year = 1990
+
+# cds_api_key = os.environ.get("CDS_API_KEY")
+cds_api_key = "11a309e4-98cb-4f04-a1c9-215cf56c2c1b"
+
+use_cache = True
+
+download_era5 = False
+use_download_cache = use_cache

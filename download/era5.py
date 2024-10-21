@@ -2,7 +2,13 @@ import cdsapi
 import os
 import pickle
 from pathlib import Path
-
+from config import (
+    download_era5,
+    use_download_cache,
+    cds_api_key,
+    start_year,
+    end_year
+)
 from utils import get_era5_data_path
 
 dataset = "derived-era5-single-levels-daily-statistics"
@@ -25,16 +31,16 @@ statistic_dict = {
     "pr": "daily_mean",
 }
 
-
-train_start_year = 1961
-train_end_year = 2020
-train_years = [str(year) for year in range(train_start_year, train_end_year + 1)]
+train_years = [str(year) for year in range(start_year, end_year + 1)]
 train_months = [f"{month:02d}" for month in range(1, 13)]
 train_days = [f"{day:02d}" for day in range(1, 32)]
 
-client = cdsapi.Client(wait_until_complete=False, key="11a309e4-98cb-4f04-a1c9-215cf56c2c1b", url="https://cds.climate.copernicus.eu/api")
+client = cdsapi.Client(wait_until_complete=False, key=cds_api_key, url="https://cds.climate.copernicus.eu/api")
 
 def get_era5_data(variable: str):
+    if not download_era5:
+        return
+    
     status_file = 'era5_download_status.pkl'
     if os.path.exists(status_file):
         with open(status_file, 'rb') as f:
@@ -42,13 +48,13 @@ def get_era5_data(variable: str):
     else:
         result_buf = {}
         
-    for year in range(train_start_year, train_end_year + 1):
+    for year in train_years:
         target = get_era5_data_path(variable, year)
-        if os.path.exists(target): 
+        if use_download_cache and os.path.exists(target): 
             print(f"{target} exists, skipping")
             continue
     
-        if target in result_buf:
+        if use_download_cache and target in result_buf:
             print(f"{target} already in buffer, skipping")
             continue
         
@@ -59,10 +65,10 @@ def get_era5_data(variable: str):
             pickle.dump(result_buf, f)
     
     for target, result in result_buf.items():
-        if os.path.exists(target):
+        if use_download_cache and os.path.exists(target):
             print(f"{target} exists, skipping")
             continue
-        if not Path(target).name.startswith(f"{variable}_"):
+        if use_download_cache and not Path(target).name.startswith(f"{variable}_"):
             print(f"{target} does not start with {variable}, skipping")
             continue
         try:

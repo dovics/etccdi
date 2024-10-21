@@ -14,25 +14,22 @@ from utils import (
     range_era5_data
 )
 
-def process_gdd(file: Path):
-    if not file.name.startswith('tas_'): # TDDO : 'tasmin'
-        return
-    ds = xr.open_dataset(file)
+indicator_name = "gdd"
+def process_gdd(ds: xr.Dataset):
     # ds['t2m'].values=ds['t2m'].values-273.15
     # print(ds['t2m'].values)
-    ds = ds.rename({"valid_time": "time"})
     
-    result = growing_degree_days(ds['t2m'], thresh="0 degC", freq="YS")
-    result.name = 'gdd'
-    result.to_dataframe().to_csv(get_result_data_path('gdd', get_year_from_path(file.name)))
+    result = growing_degree_days(ds['tas'], thresh="0 degC", freq="YS")
+    result.name = indicator_name
+    return result
 
 
 def draw_gdd(csv_path: Path):
     df = pd.read_csv(csv_path)
     # 提取经纬度和温度
-    lats = df['latitude'].values
-    lons = df['longitude'].values
-    gdd = df['gdd'].values
+    lats = df['lat'].values
+    lons = df['lon'].values
+    gdd = df[indicator_name].values
     fig, ax = new_plot(lons, lats)
     LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
     GDD = gdd.reshape(LON.shape)
@@ -44,5 +41,5 @@ def draw_gdd(csv_path: Path):
     
 
 if __name__ == '__main__':
-    range_era5_data(process_gdd)
-    draw_gdd(get_result_data_path("gdd", "2000"))
+    range_era5_data("tas", process_gdd)
+    draw_gdd(get_result_data_path(indicator_name, "2000"))

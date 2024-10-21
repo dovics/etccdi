@@ -7,23 +7,14 @@ import dask
 # 1st July to 30th June in Southern Hemisphere (SH)) count between first span of
 # at least 6 days with daily mean temperature TG>5oC and first span after July 1st 
 # (Jan 1st in SH) of 6 days with TG<5oC.
-
-def process_gsl_nh(file: Path):
-    if not file.name.startswith('tas'):
-        return
-    ds = xr.open_dataset(file)
-    ds = ds.chunk({"latitude": 20, "longitude": 20}) 
-    ds['t2m'] -= 273.15
+indicator_name = "gls"
+def process_gsl_nh(ds: xr.Dataset):
+    ds['tas'] -= 273.15
     
-    gsl_start = xr.apply_ufunc(find_gsl_start, ds['t2m'], input_core_dims=[["valid_time"]], output_core_dims=[[]], vectorize=True, dask='parallelized', output_dtypes=[int] )
-    gsl_end = xr.apply_ufunc(find_gsl_end, ds['t2m'], input_core_dims=[["valid_time"]], output_core_dims=[[]], vectorize=True, dask='parallelized', output_dtypes=[int] )
+    gsl_start = xr.apply_ufunc(find_gsl_start, ds['tas'], input_core_dims=[["time"]], output_core_dims=[[]], vectorize=True, dask='parallelized', output_dtypes=[int] )
+    gsl_end = xr.apply_ufunc(find_gsl_end, ds['tas'], input_core_dims=[["time"]], output_core_dims=[[]], vectorize=True, dask='parallelized', output_dtypes=[int] )
     gsl = gsl_end - gsl_start
-    ds = xr.Dataset({
-        'gsl': gsl,
-        'gsl_start': gsl_start,
-        'gsl_end': gsl_end,
-    })
-    ds.to_dataframe().to_csv(get_result_data_path('gsl', get_year_from_path(file.name)))
+    gsl.name = indicator_name
     return gsl
 
 def find_gsl_start(arr, span_length = 6):
@@ -39,4 +30,4 @@ def find_gsl_end(arr, span_length = 6):
     return len(arr)
 
 if __name__ == '__main__':
-    range_era5_data(process_gsl_nh)
+    range_era5_data("tas", process_gsl_nh)

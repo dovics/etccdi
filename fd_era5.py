@@ -6,28 +6,25 @@ from pathlib import Path
 from utils import (
     new_plot,
     range_era5_data,
-    get_result_data_path,
-    get_year_from_path
+    get_result_data_path
 )
 import cartopy.crs as ccrs
 
+
 # FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0oC.
-def process_fd(file: Path):
-    if not file.name.startswith('tas'):
-        return
-    ds = xr.open_dataset(file)
-    fd = (ds['t2m'] - 273.15 < 0).sum(dim='valid_time')
-    fd.to_dataframe().to_csv(
-        get_result_data_path('fd', get_year_from_path(file.name)))
+indicator_name = "fd"
+def process_fd(ds: xr.Dataset) -> xr.DataArray:
+    fd = (ds['tasmin'] - 273.15 < 0).sum(dim='time')
+    fd.name = indicator_name
     return fd
 
 def draw_fd(csv_path: Path):
     df = pd.read_csv(csv_path)
 
     # 提取经纬度和温度
-    lats = df['latitude'].values
-    lons = df['longitude'].values
-    t2m = df['t2m'].values
+    lats = df['lat'].values
+    lons = df['lon'].values
+    t2m = df[indicator_name].values
     fig, ax = new_plot(lons, lats)
 
     LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
@@ -39,5 +36,5 @@ def draw_fd(csv_path: Path):
     plt.show()
 
 if __name__ == '__main__':
-    range_era5_data(process_fd)
-    draw_fd(get_result_data_path("fd", "2000"))
+    range_era5_data("tasmin", process_fd)
+    draw_fd(get_result_data_path(indicator_name, "2000"))

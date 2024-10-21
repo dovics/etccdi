@@ -11,6 +11,8 @@ import re
 from config import  (
     era5_data_dir,
     result_data_dir,
+    start_year,
+    end_year,
     base_start_year, 
     base_end_year
 )
@@ -27,27 +29,40 @@ def get_year_from_path(path: str):
 
 def get_era5_data_path(variable: str, year: str):
     return f"{era5_data_dir}/{variable}_era5_daily_{year}.nc"
-
 def load_era5_daily_tas_data(year: str):
     return load_era5_daily_data('tas', year)
 
 def load_era5_daily_data(variable: str, year: str):
     return xr.open_dataset(get_era5_data_path(variable, year))
 
-def range_era5_data(process):
-    for file in Path(era5_data_dir).rglob('*_era5_daily_*.nc'):
+def range_era5_data(variable: str, process: callable):
+    for file in Path(era5_data_dir).rglob(f'{variable}_era5_daily_*.nc'):
         if file.is_file():
-            process(file)
-
+            ds = process(convert_era5_to_cf(xr.open_dataset(file), variable))
+            ds.to_dataframe().to_csv(get_result_data_path(ds.name, get_year_from_path(file.name)))
 def merge_base_years(variable: str) -> xr.Dataset:
     datesets = []
     for year in range(base_start_year, base_end_year + 1):
         datesets.append(load_era5_daily_data(variable, str(year)))
     
-    return xr.concat(datesets, dim='valid_time')
+    return convert_era5_to_cf(xr.concat(datesets, dim='valid_time'), variable)
 
 def get_result_data_path(variable: str, year: str):
+    if Path(result_data_dir).exists() == False: Path(result_data_dir).mkdir()
     return f"{result_data_dir}/{variable}_era5_{year}.csv"
+
+era5_variables = {
+    "tas": "t2m",
+    "tasmin": "mn2t"
+}
+
+def convert_era5_to_cf(ds: xr.Dataset, variable: str) -> xr.Dataset: 
+    return ds.rename({
+        'valid_time': 'time', 
+        "longitude": "lon",
+        "latitude": "lat", 
+        era5_variables[variable]: variable
+    })
 
 def new_plot(lons, lats):
     proj = ccrs.PlateCarree()
