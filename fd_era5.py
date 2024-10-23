@@ -5,7 +5,7 @@ import pandas as pd
 from pathlib import Path
 from utils import (
     new_plot,
-    range_era5_data,
+    range_era5_data_period,
     get_result_data_path
 )
 import cartopy.crs as ccrs
@@ -14,6 +14,7 @@ import cartopy.crs as ccrs
 # FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0oC.
 indicator_name = "fd"
 def process_fd(ds: xr.Dataset) -> xr.DataArray:
+    print(ds)
     fd = (ds['tasmin'] - 273.15 < 0).sum(dim='time')
     fd.name = indicator_name
     return fd
@@ -36,5 +37,5 @@ def draw_fd(csv_path: Path):
     plt.show()
 
 if __name__ == '__main__':
-    range_era5_data("tasmin", process_fd)
+    range_era5_data_period("tasmin", process_fd)
     draw_fd(get_result_data_path(indicator_name, "2000"))

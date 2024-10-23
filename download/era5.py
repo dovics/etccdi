@@ -4,6 +4,7 @@ import pickle
 from pathlib import Path
 from config import (
     download_era5,
+    era5_data_dir,
     use_download_cache,
     cds_api_key,
     start_year,
@@ -49,7 +50,7 @@ def get_era5_data(variable: str):
         result_buf = {}
         
     for year in train_years:
-        target = get_era5_data_path(variable, year)
+        target = f"{era5_data_dir}/{variable}_era5_origin_{year}.nc"
         if use_download_cache and os.path.exists(target): 
             print(f"{target} exists, skipping")
             continue
