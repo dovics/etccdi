@@ -10,12 +10,15 @@ from utils import (
     get_result_data_path
 )
 import cartopy.crs as ccrs
-
+from download.era5 import get_era5_data
 
 indicator_name = "dtr"
 def process_dtr(ds: xr.Dataset) -> xr.DataArray:
-    dtr = daily_temperature_range(ds['tasmin'],ds['tasmax'])
+    ds = ds.sortby('time')
+    
+    dtr = daily_temperature_range(ds['tasmin'], ds['tasmax'])
     dtr.name = indicator_name
+    
     return dtr
 
 def draw_dtr(csv_path: Path):
@@ -36,5 +39,6 @@ def draw_dtr(csv_path: Path):
     plt.show()
 
 if __name__ == '__main__':
-    range_era5_data("tasmax", process_dtr)
+    get_era5_data(["tasmax", "tasmin"])
+    range_era5_data(["tasmax", "tasmin"], process_dtr)
     draw_dtr(get_result_data_path(indicator_name, "2000"))

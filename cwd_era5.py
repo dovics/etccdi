@@ -1,6 +1,5 @@
 import xarray as xr
 from matplotlib import pyplot as plt 
-from xclim.core.calendar import percentile_doy
 import pandas as pd
 import numpy as np
 import cartopy.crs as ccrs
@@ -14,7 +13,7 @@ from utils import (
 
 indicator_name = "cwd"
 def process_cwd(ds:xr.Dataset):
-    result = maximum_consecutive_wet_days(ds['pr'],thresh='1 mm/day')
+    result = maximum_consecutive_wet_days(ds['pr'], thresh='1 mm/day')
     result.name = indicator_name
     return result
     

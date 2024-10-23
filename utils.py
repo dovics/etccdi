@@ -54,8 +54,8 @@ def load_era5_daily_data(var_list: list[str], year: str):
     dataset_list = []
     for var in var_list:
         dataset_list.append(load_era5_daily_data_single(var, year))
-    
-    ds = xr.concat(dataset_list, dim='time')
+
+    ds = xr.merge(dataset_list)
     return ds
 
 def load_era5_daily_data_single(variable, year):
@@ -114,6 +114,7 @@ era5_variables = {
     "tas": "t2m",
     "tasmin": "mn2t",
     "pr": "tp",
+    "tasmax": "mx2t",
 }
 
 def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset: 

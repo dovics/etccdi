@@ -2,6 +2,8 @@ import cdsapi
 import os
 import pickle
 from pathlib import Path
+from typing import Union
+
 from config import (
     download_era5,
     era5_data_dir,
@@ -36,9 +38,16 @@ train_years = [str(year) for year in range(start_year, end_year + 1)]
 train_months = [f"{month:02d}" for month in range(1, 13)]
 train_days = [f"{day:02d}" for day in range(1, 32)]
 
-client = cdsapi.Client(wait_until_complete=False, key=cds_api_key, url="https://cds.climate.copernicus.eu/api")
+if download_era5:
+    client = cdsapi.Client(wait_until_complete=False, key=cds_api_key, url="https://cds.climate.copernicus.eu/api")
 
-def get_era5_data(variable: str):
+def get_era5_data(var_list: Union[list[str], str]):
+    if isinstance(var_list, str): var_list = [var_list]
+    
+    for var in var_list:
+        get_era5_data_single(var)
+
+def get_era5_data_single(variable: str):
     if not download_era5:
         return
     
