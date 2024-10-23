@@ -19,7 +19,7 @@ def process_fd(ds: xr.Dataset) -> xr.DataArray:
     return fd
 
 def draw_fd(csv_path: Path):
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path) 
 
     # 提取经纬度和温度
     lats = df['lat'].values

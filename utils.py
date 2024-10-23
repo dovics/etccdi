@@ -40,6 +40,7 @@ def range_era5_data(variable: str, process: callable):
         if file.is_file():
             ds = process(convert_era5_to_cf(xr.open_dataset(file), variable))
             ds.to_dataframe().to_csv(get_result_data_path(ds.name, get_year_from_path(file.name)))
+            
 def merge_base_years(variable: str) -> xr.Dataset:
     datesets = []
     for year in range(base_start_year, base_end_year + 1):
