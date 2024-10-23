@@ -9,6 +9,7 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import numpy as np
 import re
 from datetime import datetime
+from typing import Union
 import dask
 import zarr
 import pandas as pd
@@ -49,7 +50,15 @@ def get_cf_daily_date_path(variable: str, year: str):
     if Path(result_data_dir).exists() == False: Path(result_data_dir).mkdir()
     return f"{intermediate_data_dir}/{variable}_cf_daily_{year}.zarr"
 
-def load_era5_daily_data(variable: str, year: str):
+def load_era5_daily_data(var_list: list[str], year: str):
+    dataset_list = []
+    for var in var_list:
+        dataset_list.append(load_era5_daily_data_single(var, year))
+    
+    ds = xr.concat(dataset_list, dim='time')
+    return ds
+
+def load_era5_daily_data_single(variable, year):
     path = get_cf_daily_date_path(variable, year)
     if use_cache and Path(path).exists():
         print(f"Using cached {path}")
@@ -65,33 +74,37 @@ def load_era5_daily_data(variable: str, year: str):
     
     return ds
 
-def range_era5_data(variable: str, process: callable):
-    for file in Path(era5_data_dir).rglob(f'{variable}_era5_origin_*.nc'):
-        if file.is_file():
-            ds = process(convert_era5_to_cf_daily(xr.open_dataset(file), variable))
-            ds.to_dataframe().to_csv(get_result_data_path(ds.name, get_year_from_path(file.name)))
+def range_era5_data(var_list: Union[list[str], str], process: callable):
+    if isinstance(var_list, str): var_list = [var_list]
+    
+    for year in range(start_year, end_year + 1):
+        ds = process(load_era5_daily_data(var_list, str(year)))
+        ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
 
-def range_era5_data_period(variable: str, process: callable):
-    if datetime.strptime(period_start, '%m-%d') > datetime.strptime(period_end, '%m-%d'): 
-        for year in range(start_year + 1, end_year + 1):
-            last_year_ds = load_era5_daily_data(variable, str(year - 1))
-            this_year_ds = load_era5_daily_data(variable, str(year))
-            merged_ds = xr.concat([last_year_ds, this_year_ds], dim="time")
-            selected_ds = merged_ds.sel(time=slice(f"{year - 1}-{period_start}", f"{year}-{period_end}"))
-            ds = process(selected_ds)
-            print(ds)
-            ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))   
-    else:
+def range_era5_data_period(var_list: Union[list[str], str], process: callable):
+    if isinstance(var_list, str): var_list = [var_list]
+    
+    if datetime.strptime(period_start, '%m-%d') < datetime.strptime(period_end, '%m-%d'): 
         for year in range(start_year, end_year + 1):
-            ds = process(load_era5_daily_data(variable, str(year)))
+            ds = process(load_era5_daily_data(var_list, str(year)))
             ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
+    
+        return
+    
+    for year in range(start_year + 1, end_year + 1):
+        last_year_ds = load_era5_daily_data(var_list, str(year - 1))
+        this_year_ds = load_era5_daily_data(var_list, str(year))
+        merged_ds = xr.concat([last_year_ds, this_year_ds], dim="time")
+        selected_ds = merged_ds.sel(time=slice(f"{year - 1}-{period_start}", f"{year}-{period_end}"))
+        ds = process(selected_ds)
+        ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))   
 
-def merge_base_years(variable: str) -> xr.Dataset:
+def merge_base_years(var_list: list[str]) -> xr.Dataset:
     datesets = []
     for year in range(base_start_year, base_end_year + 1):
-        datesets.append(load_era5_daily_data(variable, str(year)))
+        datesets.append(load_era5_daily_data(var_list, str(year)))
     
-    return convert_era5_to_cf_daily(xr.concat(datesets, dim='valid_time'), variable)
+    return convert_era5_to_cf_daily(xr.concat(datesets, dim='valid_time'), var_list)
 
 def get_result_data_path(variable: str, year: str):
     if Path(result_data_dir).exists() == False: Path(result_data_dir).mkdir()
@@ -99,7 +112,8 @@ def get_result_data_path(variable: str, year: str):
 
 era5_variables = {
     "tas": "t2m",
-    "tasmin": "mn2t"
+    "tasmin": "mn2t",
+    "pr": "tp",
 }
 
 def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset: 
@@ -112,6 +126,10 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
             ds = ds.max(dim='valid_time')
         ds['date'] = pd.to_datetime(ds['date'])
         time_variable = "date"
+   
+    if variable == "pr" and ds['tp'].attrs['units'] == 'm':
+        ds['tp'] = ds['tp'] * 1000
+        ds['tp'].attrs['units'] = 'mm/day'
 
     return ds.rename({
         time_variable: 'time', 

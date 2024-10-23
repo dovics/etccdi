@@ -1,10 +1,9 @@
 import xarray as xr
 from matplotlib import pyplot as plt 
-from xclim.core.calendar import percentile_doy
 import pandas as pd
 import numpy as np
 import cartopy.crs as ccrs
-from xclim.indices import maximum_consecutive_dry_days
+from xclim.indicators.atmos import maximum_consecutive_dry_days
 from pathlib import Path
 from utils import (
     new_plot,
@@ -13,8 +12,8 @@ from utils import (
 )
 
 indicator_name = "cdd"
-def process_cdd(ds:xr.Dataset):
-    result = maximum_consecutive_dry_days(ds['pr'],thresh='1 mm/day')
+def process_cdd(ds: xr.Dataset):
+    result = maximum_consecutive_dry_days(ds['pr'], thresh='1 mm/day', freq='YS')
     result.name = indicator_name
     return result
     
