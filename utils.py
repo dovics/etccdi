@@ -13,6 +13,8 @@ from typing import Union
 import dask
 import zarr
 import pandas as pd
+import geopandas as gdp
+import rioxarray
 
 from config import  (
     era5_data_dir,
@@ -29,8 +31,6 @@ from config import  (
     
     use_cache,
 )
-
-geojson_path = "D:/CMIP6/DataV_GeoJSON/geojson/province/650000.json"
 
 def get_year_from_path(path: str):
     match = re.search(r'(\d{4})\.nc', path)
@@ -131,7 +131,7 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
         time_variable = "date"
    
     if variable == "pr" and ds['tp'].attrs['units'] == 'm':
-        ds['tp'] = ds['tp'] * 1000
+        ds['tp'] = ds['tp'] * 1000 * 24
         ds['tp'].attrs['units'] = 'mm/day'
 
     return ds.rename({
@@ -161,3 +161,9 @@ def new_plot(lons, lats):
     gl.ylocator = mticker.FixedLocator(np.arange(lats.min(), lats.max()+10, 10))
     
     return fig, ax
+
+def clip_dataset(ds: xr.Dataset) -> xr.Dataset:
+    gdf = gdp.read_file('static/province.shp')
+    ds = ds.rio.write_crs("EPSG:4326")
+    gdf = gdf.to_crs("EPSG:4326")
+    return  ds.rio.clip(gdf.geometry.apply(lambda p: p.__geo_interface__), gdf.crs)

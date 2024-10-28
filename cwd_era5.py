@@ -8,7 +8,8 @@ from pathlib import Path
 from utils import (
     new_plot,
     get_result_data_path,
-    range_era5_data
+    range_era5_data,
+    clip_dataset
 )
 
 indicator_name = "cwd"
@@ -26,7 +27,7 @@ def draw_cwd(csv_path: Path):
     fig, ax = new_plot(lons, lats)
     LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
     CWD = cwd.reshape(LON.shape)
-    contour = ax.contourf(LON, LAT, CWD, levels=15, cmap='coolwarm', transform=ccrs.PlateCarree())
+    contour = ax.contourf(LON, LAT, CWD, levels=15, cmap='coolwarm_r', transform=ccrs.PlateCarree())
     plt.colorbar(contour, label='Maximum consecutive wet days.',  orientation='vertical', pad=0.1)
     plt.title('ERA5 CWD')
     plt.show()

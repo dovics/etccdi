@@ -27,8 +27,8 @@ def draw_r20(csv_path: Path):
     fig, ax = new_plot(lons, lats)
     LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
     R20 = r20.reshape(LON.shape)
-    contour = ax.contourf(LON, LAT, R20, levels=15, cmap='coolwarm', transform=ccrs.PlateCarree())
-    plt.colorbar(contour, label='Annual count of days when PRCP≥ 10mm',  orientation='vertical', pad=0.1)
+    contour = ax.contourf(LON, LAT, R20, levels=15, cmap='coolwarm_r', transform=ccrs.PlateCarree())
+    plt.colorbar(contour, label='Annual count of days when PRCP ≥ 20mm',  orientation='vertical', pad=0.1)
     plt.title('ERA5 R20')
     plt.show()
 
