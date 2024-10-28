@@ -50,7 +50,9 @@ def get_cf_daily_date_path(variable: str, year: str):
     if Path(result_data_dir).exists() == False: Path(result_data_dir).mkdir()
     return f"{intermediate_data_dir}/{variable}_cf_daily_{year}.zarr"
 
-def load_era5_daily_data(var_list: list[str], year: str):
+def load_era5_daily_data(var_list: Union[list[str], str], year: str):
+    if isinstance(var_list, str): var_list = [var_list]
+    
     dataset_list = []
     for var in var_list:
         dataset_list.append(load_era5_daily_data_single(var, year))
@@ -99,7 +101,7 @@ def range_era5_data_period(var_list: Union[list[str], str], process: callable):
         ds = process(selected_ds)
         ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))   
 
-def merge_base_years(var_list: list[str]) -> xr.Dataset:
+def merge_base_years(var_list: Union[list[str], str]) -> xr.Dataset:
     datesets = []
     for year in range(base_start_year, base_end_year + 1):
         datesets.append(load_era5_daily_data(var_list, str(year)))
