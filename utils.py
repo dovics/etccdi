@@ -13,7 +13,7 @@ from typing import Union
 import dask
 import zarr
 import pandas as pd
-import geopandas as gdp
+import geopandas as gpd
 import rioxarray
 
 from config import  (
@@ -76,21 +76,26 @@ def load_era5_daily_data_single(variable, year):
     
     return ds
 
-def range_era5_data(var_list: Union[list[str], str], process: callable):
+def range_era5_data(var_list: Union[list[str], str], process: callable, postprocess: callable = None):
     if isinstance(var_list, str): var_list = [var_list]
     
     for year in range(start_year, end_year + 1):
         ds = process(load_era5_daily_data(var_list, str(year)))
         ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
+        if postprocess: 
+            df = postprocess(ds)
+            df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)))
 
-def range_era5_data_period(var_list: Union[list[str], str], process: callable):
+def range_era5_data_period(var_list: Union[list[str], str], process: callable, postprocess: callable = None):
     if isinstance(var_list, str): var_list = [var_list]
     
     if datetime.strptime(period_start, '%m-%d') < datetime.strptime(period_end, '%m-%d'): 
         for year in range(start_year, end_year + 1):
             ds = process(load_era5_daily_data(var_list, str(year)))
             ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
-    
+            if postprocess: 
+                df = postprocess(ds)
+                df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)))
         return
     
     for year in range(start_year + 1, end_year + 1):
@@ -100,6 +105,9 @@ def range_era5_data_period(var_list: Union[list[str], str], process: callable):
         selected_ds = merged_ds.sel(time=slice(f"{year - 1}-{period_start}", f"{year}-{period_end}"))
         ds = process(selected_ds)
         ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))   
+        if postprocess: 
+            df = postprocess(ds)
+            df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)))
 
 def merge_base_years(var_list: Union[list[str], str]) -> xr.Dataset:
     datesets = []
@@ -140,14 +148,16 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
         "latitude": "lat", 
         era5_variables[variable]: variable
     })
+    
+province_geojson="static/xinjiang.json"
 
 def new_plot(lons, lats):
     proj = ccrs.PlateCarree()
     fig = plt.figure(figsize=(6, 4), dpi=200)
     ax = fig.subplots(1, 1, subplot_kw={'projection': proj}) 
     
-    reader = Reader('static/province.shp')
-    provinces = cfeat.ShapelyFeature(reader.geometries(), proj, edgecolor='k', facecolor='none')
+    gdf = gpd.read_file(province_geojson)
+    provinces = cfeat.ShapelyFeature(gdf.geometry, proj, edgecolor='k', alpha=0.7, facecolor='none')
     ax.add_feature(provinces, linewidth=1)
     
     ax.set_extent([lons.min(), lons.max(), lats.min(), lats.max()], crs=proj)
@@ -162,8 +172,35 @@ def new_plot(lons, lats):
     
     return fig, ax
 
-def clip_dataset(ds: xr.Dataset) -> xr.Dataset:
-    gdf = gdp.read_file('static/province.shp')
-    ds = ds.rio.write_crs("EPSG:4326")
-    gdf = gdf.to_crs("EPSG:4326")
-    return  ds.rio.clip(gdf.geometry.apply(lambda p: p.__geo_interface__), gdf.crs)
+def mean_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
+    da = da.load().astype(float)
+    da = da.rio.write_crs(gdf.crs)
+    averages = []
+    for _, region in gdf.iterrows():
+        try:
+            clipped = da.rio.clip([region.geometry])
+            mean_value = clipped.mean(dim=['lat', 'lon'], skipna=True)
+            averages.append({"name": region["name"], "value": str(mean_value.values)})
+        except Exception as e:
+            print(region["name"], "error:", e)
+            continue
+
+    results_df = pd.DataFrame(averages)
+    return results_df
+
+gdf_list = []
+
+def get_gdf_list():
+    if len(gdf_list) != 0:
+        return gdf_list
+    for file in Path("static").glob(pattern="*_full.json"):
+        gdf_list.append(gpd.read_file(file))
+        
+    return gdf_list
+    
+def mean_by_region(da: xr.DataArray) -> pd.DataFrame:
+    df_list = []
+    for gdf in get_gdf_list():
+        df_list.append(mean_by_gdf(da, gdf))
+    
+    return pd.concat(df_list)
