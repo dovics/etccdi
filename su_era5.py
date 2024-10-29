@@ -15,7 +15,7 @@ from xclim.indices import maximum_consecutive_tx_days
 # SU, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25oC.
 indicator_name = "su"
 def process_su(ds: xr.Dataset):
-    su = maximum_consecutive_tx_days(ds['tas'], freq="YS")
+    su = maximum_consecutive_tx_days(ds['tasmax'], freq="YS")
     su.name = indicator_name
     return su
 
@@ -37,5 +37,5 @@ def draw_su(csv_path: Path):
     plt.show()
 
 if __name__ == '__main__':
-    range_era5_data("tas", process_su)
+    range_era5_data("tasmax", process_su)
     draw_su(get_result_data_path(indicator_name, "2000"))

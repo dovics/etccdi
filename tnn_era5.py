@@ -15,7 +15,7 @@ from utils import (
 # why not tasminmin???????????????
 
 indicator_name = "tnn"
-def process_tnn(ds: xr.Datasminet):
+def process_tnn(ds: xr.Dataset):
     result = tn_min(ds['tasmin'], freq="YS")
     result.name = indicator_name
     return result

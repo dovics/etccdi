@@ -9,7 +9,6 @@ from utils import (
     new_plot,
     get_result_data_path,
     range_era5_data,
-    clip_dataset
 )
 
 indicator_name = "cwd"

@@ -14,12 +14,12 @@ from utils import (
 )
 
 # why not tasmin???????????????
-base_ds = merge_base_years('tas')
-t90 = percentile_doy(base_ds['tas'], per=10, window=5).sel(percentiles=90)
+base_ds = merge_base_years('tasmin')
+t90 = percentile_doy(base_ds['tasmin'], per=90, window=5).sel(percentiles=90)
 
 indicator_name = "tn90p"
 def process_tn90p(ds: xr.Dataset):
-    result = tn90p(ds['tas'], t90, freq="YS") 
+    result = tn90p(ds['tasmin'], t90, freq="YS") 
     result.name = indicator_name
     return result
 
@@ -38,5 +38,5 @@ def draw_tn90p(csv_path: Path):
     plt.show()
     
 if __name__ == '__main__':
-    range_era5_data("tas", process_tn90p)
+    range_era5_data("tasmin", process_tn90p)
     draw_tn90p(get_result_data_path(indicator_name, "2000"))

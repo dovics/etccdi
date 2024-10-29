@@ -84,7 +84,7 @@ def range_era5_data(var_list: Union[list[str], str], process: callable, postproc
         ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
         if postprocess: 
             df = postprocess(ds)
-            df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)))
+            df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)), index=False)
 
 def range_era5_data_period(var_list: Union[list[str], str], process: callable, postprocess: callable = None):
     if isinstance(var_list, str): var_list = [var_list]
@@ -95,7 +95,7 @@ def range_era5_data_period(var_list: Union[list[str], str], process: callable, p
             ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
             if postprocess: 
                 df = postprocess(ds)
-                df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)))
+                df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)), index=False)
         return
     
     for year in range(start_year + 1, end_year + 1):
@@ -107,7 +107,7 @@ def range_era5_data_period(var_list: Union[list[str], str], process: callable, p
         ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))   
         if postprocess: 
             df = postprocess(ds)
-            df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)))
+            df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)), index=False)
 
 def merge_base_years(var_list: Union[list[str], str]) -> xr.Dataset:
     datesets = []
@@ -203,4 +203,4 @@ def mean_by_region(da: xr.DataArray) -> pd.DataFrame:
     for gdf in get_gdf_list():
         df_list.append(mean_by_gdf(da, gdf))
     
-    return pd.concat(df_list)
+    return pd.concat(df_list, ignore_index=True)

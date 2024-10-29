@@ -10,7 +10,6 @@ from utils import (
     new_plot,
     merge_base_years,
     get_result_data_path,
-    get_year_from_path,
     range_era5_data
 )
 

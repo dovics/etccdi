@@ -15,7 +15,7 @@ from utils import (
 # why not tasmaxmin???????????????
 
 indicator_name = "txx"
-def process_txx(ds: xr.Datasmaxet):
+def process_txx(ds: xr.Dataset):
     result = tx_max(ds['tasmax'], freq="YS")
     result.name = indicator_name
     return result

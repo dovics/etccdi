@@ -15,7 +15,7 @@ from utils import (
 
 # tasmax
 base_ds = merge_base_years('tasmax')
-t90 = percentile_doy(base_ds['tasmax'], per=10, window=5).sel(percentiles=90)
+t90 = percentile_doy(base_ds['tasmax'], per=90, window=5).sel(percentiles=90)
 
 indicator_name = "tn90p"
 def process_tx90p(ds: xr.Dataset):
