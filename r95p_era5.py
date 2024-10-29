@@ -14,10 +14,10 @@ from utils import (
 )
 
 base_ds = merge_base_years('pr')
-r95 = percentile_doy(base_ds['pr'], per=5).sel(percentiles=95)
+r95 = percentile_doy(base_ds['pr'], per=95).sel(percentiles=95)
 indicator_name = "r95p"
 def process_r95p(ds:xr.Dataset):
-    result = days_over_precip_thresh(ds['pr'],r95, freq="YS")
+    result = days_over_precip_thresh(ds['pr'], r95, freq="YS")
     result.name = indicator_name
     return result
     

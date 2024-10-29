@@ -106,7 +106,7 @@ def merge_base_years(var_list: Union[list[str], str]) -> xr.Dataset:
     for year in range(base_start_year, base_end_year + 1):
         datesets.append(load_era5_daily_data(var_list, str(year)))
     
-    return convert_era5_to_cf_daily(xr.concat(datesets, dim='valid_time'), var_list)
+    return xr.concat(datesets, dim='time')
 
 def get_result_data_path(variable: str, year: str):
     if Path(result_data_dir).exists() == False: Path(result_data_dir).mkdir()
