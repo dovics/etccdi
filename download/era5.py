@@ -14,14 +14,7 @@ from config import (
 )
 from utils import get_era5_data_path
 
-dataset =  {
-    "tasmax": "derived-era5-single-levels-daily-statistics",
-    "tasmin": "derived-era5-single-levels-daily-statistics",
-    "tas": "derived-era5-single-levels-daily-statistics",
-    "pr": "reanalysis-era5-single-levels",
-    "rsds": "derived-era5-single-levels-daily-statistics"
-}
-
+dataset = "derived-era5-single-levels-daily-statistics"
 area = [55, 70, 30, 100]
 variable_name_dict = {
     "tas": "2m_temperature",
@@ -29,6 +22,7 @@ variable_name_dict = {
     "tasmin": "minimum_2m_temperature_since_previous_post_processing",
     "pr": "total_precipitation", 
     "rsds": "clear_sky_direct_solar_radiation_at_surface",
+    "tdps": "2m_dewpoint_temperature",
 }
 
 variable_rename_dict = {
@@ -49,7 +43,8 @@ statistic_dict = {
     "tasmax": "daily_maximum",
     "tasmin": "daily_minimum",
     "pr": "daily_mean",
-    "rsds": "daily_mean"
+    "rsds": "daily_mean",
+    "tdps": "daily_mean",
 }
 
 train_years = [str(year) for year in range(start_year, end_year + 1)]
@@ -107,28 +102,28 @@ def get_era5_data_single(variable: str):
 
 def retrieve_era5_data(key: str, year: str):
     print(f"Downloading {key} data for {year}")
-    if key == "pr":
-        request = {
+    # if key == "pr":
+    #     request = {
+    #     "product_type": ["reanalysis"],
+    #     "variable": [variable_name_dict[key]],
+    #     "year": year,
+    #     "month": train_months,
+    #     "day": train_days,
+    #     "area": area,
+    #     "time": time,
+    #     }
+    # else:
+    request = {
         "product_type": ["reanalysis"],
         "variable": [variable_name_dict[key]],
         "year": year,
         "month": train_months,
         "day": train_days,
         "area": area,
-        "time": time,
-        }
-    else:
-        request = {
-            "product_type": ["reanalysis"],
-            "variable": [variable_name_dict[key]],
-            "year": year,
-            "month": train_months,
-            "day": train_days,
-            "area": area,
-            "daily_statistic": statistic_dict[key],
-            "time_zone": "utc+08:00",
-            "frequency": "1_hourly"
-        }
+        "daily_statistic": statistic_dict[key],
+        "time_zone": "utc+08:00",
+        "frequency": "1_hourly"
+    }
     
         
-    return client.retrieve(dataset[key], request)
+    return client.retrieve(dataset, request)

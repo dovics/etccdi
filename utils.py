@@ -69,18 +69,21 @@ def load_era5_daily_data_single(variable, year):
     era5_ds = load_era5_date(variable, year)
     ds = convert_era5_to_cf_daily(era5_ds.sel(valid_time=slice(f"{year}-01-01", f"{year}-12-31")), variable)
     
+    save_to_zarr(ds, path)
+    return ds
+
+def save_to_zarr(ds: xr.Dataset, path: Path):
     ds = dask.optimize(ds)[0]
     t = ds.to_zarr(path, mode='w', compute=False, safe_chunks=False)
     t.compute(retries=5)
     zarr.consolidate_metadata(path)
     
-    return ds
-
 def range_era5_data(var_list: Union[list[str], str], process: callable, postprocess: callable = None):
     if isinstance(var_list, str): var_list = [var_list]
     
     for year in range(start_year, end_year + 1):
         ds = process(load_era5_daily_data(var_list, str(year)))
+        if ds == None: continue
         ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
         if postprocess: 
             df = postprocess(ds)
@@ -125,6 +128,8 @@ era5_variables = {
     "tasmin": "mn2t",
     "pr": "tp",
     "tasmax": "mx2t",
+    "rsds": "cdir",
+    "tdps": "d2m",
 }
 
 def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset: 
@@ -138,9 +143,13 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
         ds['date'] = pd.to_datetime(ds['date'])
         time_variable = "date"
    
-    if variable == "pr" and ds['tp'].attrs['units'] == 'm':
-        ds['tp'] = ds['tp'] * 1000 * 24
-        ds['tp'].attrs['units'] = 'mm/day'
+    if variable == "pr" and ds[era5_variables[variable]].attrs['units'] == 'm':
+        ds[era5_variables[variable]] = ds[era5_variables[variable]] * 1000 * 24
+        ds[era5_variables[variable]].attrs['units'] = 'mm/day'
+
+    if variable == "rsds" and ds[era5_variables[variable]].attrs['units'] == 'J m**-2':
+        ds[era5_variables[variable]] = ds[era5_variables[variable]] / 3600
+        ds[era5_variables[variable]].attrs['units'] = 'W m-2'
 
     return ds.rename({
         time_variable: 'time', 
