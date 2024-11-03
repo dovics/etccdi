@@ -15,6 +15,7 @@ import zarr
 import pandas as pd
 import geopandas as gpd
 import rioxarray
+from shapely.geometry import Point, Polygon
 
 from config import  (
     era5_data_dir,
@@ -68,8 +69,11 @@ def load_era5_daily_data_single(variable, year):
     
     era5_ds = load_era5_date(variable, year)
     ds = convert_era5_to_cf_daily(era5_ds.sel(valid_time=slice(f"{year}-01-01", f"{year}-12-31")), variable)
-    
+
     save_to_zarr(ds, path)
+    if ds[variable].isnull().any():
+        print(f"{variable} {year} has null")
+        exit(1)
     return ds
 
 def save_to_zarr(ds: xr.Dataset, path: Path):
@@ -83,7 +87,7 @@ def range_era5_data(var_list: Union[list[str], str], process: callable, postproc
     
     for year in range(start_year, end_year + 1):
         ds = process(load_era5_daily_data(var_list, str(year)))
-        if ds == None: continue
+        if ds is None: continue
         ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
         if postprocess: 
             df = postprocess(ds)
@@ -150,7 +154,8 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
     if variable == "rsds" and ds[era5_variables[variable]].attrs['units'] == 'J m**-2':
         ds[era5_variables[variable]] = ds[era5_variables[variable]] / 3600
         ds[era5_variables[variable]].attrs['units'] = 'W m-2'
-
+    
+    ds = ds.drop("number")
     return ds.rename({
         time_variable: 'time', 
         "longitude": "lon",
@@ -158,26 +163,44 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
         era5_variables[variable]: variable
     })
     
-province_geojson="static/xinjiang.json"
-
-def new_plot(lons, lats):
+province_full_geojson="static/xinjiang_full.json"
+province_border_geojson="static/xinjiang.json"
+def new_plot(show_border=True, show_grid=True, show_country=False, subregions=None):
     proj = ccrs.PlateCarree()
     fig = plt.figure(figsize=(6, 4), dpi=200)
     ax = fig.subplots(1, 1, subplot_kw={'projection': proj}) 
     
-    gdf = gpd.read_file(province_geojson)
-    provinces = cfeat.ShapelyFeature(gdf.geometry, proj, edgecolor='k', alpha=0.7, facecolor='none')
-    ax.add_feature(provinces, linewidth=1)
+    gdf = gpd.read_file(province_border_geojson)
+    (minx, miny, maxx, maxy) = get_bounds(gdf, margin=1)
+    ax.set_extent([minx, maxx, miny, maxy], crs=proj)
+    if not show_country and show_border:
+        provinces = cfeat.ShapelyFeature(gdf.geometry, proj, edgecolor='k', alpha=0.7, facecolor='none')
+        ax.add_feature(provinces, linewidth=1)
     
-    ax.set_extent([lons.min(), lons.max(), lats.min(), lats.max()], crs=proj)
+    if show_country:
+        region_list = []
+        for gdf in get_gdf_list():
+            for _, region in gdf.iterrows():
+                region_list.append(gpd.GeoDataFrame([region], geometry=[region.geometry], crs=gdf.crs))
+        merged_gdf = gpd.pd.concat(region_list)
+        provinces = cfeat.ShapelyFeature(merged_gdf.geometry, proj, edgecolor='k', alpha=0.7, facecolor='none')
+        ax.add_feature(provinces, linewidth=1)
+        
+    if show_grid:
+        gl = ax.gridlines(crs=proj, draw_labels=True, linewidth=1.2, color='k', alpha=0.5, linestyle='--')
     
-    gl = ax.gridlines(crs=proj, draw_labels=True, linewidth=1.2, color='k', alpha=0.5, linestyle='--')
+    if subregions is not None:
+        for subregion in subregions:
+            region = find_region_by_name(subregion)
+            regionFeature = cfeat.ShapelyFeature(region.geometry, proj, edgecolor='red', alpha=0.7, facecolor='none')
+            ax.add_feature(regionFeature, linewidth=1)
+
     gl.xlabels_top = False 
     gl.ylabels_right = False
     gl.xformatter = LONGITUDE_FORMATTER 
     gl.yformatter = LATITUDE_FORMATTER  
-    gl.xlocator = mticker.FixedLocator(np.arange(lons.min(), lons.max()+10, 10))
-    gl.ylocator = mticker.FixedLocator(np.arange(lats.min(), lats.max()+10, 10))
+    gl.xlocator = mticker.FixedLocator(np.arange(minx, maxx+10, 10))
+    gl.ylocator = mticker.FixedLocator(np.arange(miny, maxy+10, 10))
     
     return fig, ax
 
@@ -213,3 +236,77 @@ def mean_by_region(da: xr.DataArray) -> pd.DataFrame:
         df_list.append(mean_by_gdf(da, gdf))
     
     return pd.concat(df_list, ignore_index=True)
+
+def find_region_by_name(name: str) -> gpd.GeoDataFrame:
+    for gdf in get_gdf_list():
+        for _, region in gdf.iterrows():
+            if region["name"] == name:
+                return region
+            
+def get_bounds(gdf, margin=1):
+    from shapely.geometry import MultiPolygon
+    minx, miny, maxx, maxy = float('inf'), float('inf'), float('-inf'), float('-inf')
+
+    for geom in gdf.geometry:
+        if isinstance(geom, MultiPolygon):
+            for polygon in geom.geoms:
+                bounds = polygon.bounds
+                minx = min(minx, bounds[0])
+                miny = min(miny, bounds[1])
+                maxx = max(maxx, bounds[2])
+                maxy = max(maxy, bounds[3])
+        else:
+            bounds = geom.bounds
+            minx = min(minx, bounds[0])
+            miny = min(miny, bounds[1])
+            maxx = max(maxx, bounds[2])
+            maxy = max(maxy, bounds[3])
+
+    return (minx - margin, miny - margin, maxx + margin, maxy + margin)
+
+def draw_country_map(df: pd.DataFrame, fill=True):
+    region_list = []
+    for gdf in get_gdf_list():
+        for _, region in gdf.iterrows():
+            region_value = df[df["name"] == region["name"]]
+            if not region_value.empty:
+                region["value"] = region_value['value'].item()
+            else:
+                region["value"] = None
+                
+            region_list.append(gpd.GeoDataFrame([region], geometry=[region.geometry], crs=gdf.crs))
+    merged_gdf = gpd.pd.concat(region_list)
+    if fill:
+        merged_gdf.plot(column="value", edgecolor='black', 
+                        linewidth=1, cmap='coolwarm', legend=True)
+    else:
+        merged_gdf.boundary.plot(edgecolor='black', linewidth=1)
+    
+def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True):
+    gdf = gpd.read_file(province_border_geojson)
+    if clip:
+        geometry = [Point(xy) for xy in zip(df['lon'], df['lat'])]
+        df_gpd = gpd.GeoDataFrame(df, geometry=geometry)
+        df = gpd.sjoin(df_gpd, gdf, predicate='within')
+        lats = df['lat'].values
+        lons = df['lon'].values
+        LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
+        grid_df = pd.DataFrame({
+            'lat': LAT.ravel(),
+            'lon': LON.ravel()
+        })
+        merged_df = pd.merge(grid_df, df, on=['lat', 'lon'], how='left')
+        GDD = merged_df.pivot(index='lat', columns='lon', values=variable).values
+    else:
+        (minx, miny, maxx, maxy) = get_bounds(gdf, margin=1)
+        df = df[(df['lat'] >= miny) & (df['lat'] <= maxy) & (df['lon'] >= minx) & (df['lon'] <= maxx)]
+        lats = df['lat'].values
+        lons = df['lon'].values
+        LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
+        GDD = df[variable].values.reshape(LON.shape)
+        
+    fig, ax = new_plot(subregions=["和田县"])
+    contour = ax.contourf(LON, LAT, GDD, levels=15, cmap='coolwarm', transform=ccrs.PlateCarree())
+    # ax.contour(LON, LAT, GDD, levels=3, colors='black', linewidths=0.5, transform=ccrs.PlateCarree())
+    plt.colorbar(contour, label=variable,  orientation='vertical', pad=0.1)
+    

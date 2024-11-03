@@ -15,7 +15,7 @@ base_end_year = 1990
 # cds_api_key = os.environ.get("CDS_API_KEY")
 # cds_api_key = "11a309e4-98cb-4f04-a1c9-215cf56c2c1b" # wang
 cds_api_key = "d8d390f1-abf3-46f7-b3c0-6bfa8b5e1f4c" # fang
-use_cache = True
+use_cache = False
 
 download_era5 = False
 use_download_cache = use_cache
