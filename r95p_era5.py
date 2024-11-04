@@ -31,5 +31,5 @@ def draw_r95p(csv_path: Path):
     plt.show()
 
 if __name__ == '__main__':
-    range_era5_data_period("pr", process_r95p,mean_by_region)
+    range_era5_data_period("pr", process_r95p, mean_by_region)
     draw_r95p(get_result_data_path(indicator_name, "2000"))

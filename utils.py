@@ -121,7 +121,7 @@ def merge_base_years(var_list: Union[list[str], str]) -> xr.Dataset:
     for year in range(base_start_year, base_end_year + 1):
         datesets.append(load_era5_daily_data(var_list, str(year)))
     
-    return xr.concat(datesets, dim='time')
+    return xr.concat(datesets, dim='time', coords='minimal')
 
 def get_result_data_path(variable: str, year: str):
     if Path(result_data_dir).exists() == False: Path(result_data_dir).mkdir()
@@ -207,6 +207,7 @@ def new_plot(show_border=True, show_grid=True, show_country=False, subregions=No
 def mean_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
     da = da.load().astype(float)
     da = da.rio.write_crs(gdf.crs)
+    da = da.rio.set_spatial_dims(x_dim='lon', y_dim='lat')
     averages = []
     for _, region in gdf.iterrows():
         try:
