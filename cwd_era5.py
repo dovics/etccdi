@@ -9,28 +9,23 @@ from utils import (
     new_plot,
     get_result_data_path,
     range_era5_data,
+    range_era5_data_period,
+    mean_by_region,
+    draw_latlon_map
 )
 
 indicator_name = "cwd"
 def process_cwd(ds:xr.Dataset):
     result = maximum_consecutive_wet_days(ds['pr'], thresh='1 mm/day')
     result.name = indicator_name
-    return result
+    return result.sum(dim="time")
     
 def draw_cwd(csv_path: Path):
     df = pd.read_csv(csv_path)
-    # 提取经纬度和温度
-    lats = df['lat'].values
-    lons = df['lon'].values
-    cwd = df[indicator_name].values
-    fig, ax = new_plot(lons, lats)
-    LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
-    CWD = cwd.reshape(LON.shape)
-    contour = ax.contourf(LON, LAT, CWD, levels=15, cmap='coolwarm_r', transform=ccrs.PlateCarree())
-    plt.colorbar(contour, label='Maximum consecutive wet days.',  orientation='vertical', pad=0.1)
+    draw_latlon_map(df, indicator_name,clip=True)
     plt.title('ERA5 CWD')
     plt.show()
 
 if __name__ == '__main__':
-    range_era5_data("pr", process_cwd)
+    range_era5_data_period("pr", process_cwd,mean_by_region)
     draw_cwd(get_result_data_path(indicator_name, "2000"))

@@ -305,7 +305,7 @@ def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True):
         LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
         GDD = df[variable].values.reshape(LON.shape)
         
-    fig, ax = new_plot(subregions=["和田县"])
+    fig, ax = new_plot()
     contour = ax.contourf(LON, LAT, GDD, levels=15, cmap='coolwarm', transform=ccrs.PlateCarree())
     # ax.contour(LON, LAT, GDD, levels=3, colors='black', linewidths=0.5, transform=ccrs.PlateCarree())
     plt.colorbar(contour, label=variable,  orientation='vertical', pad=0.1)

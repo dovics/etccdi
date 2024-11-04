@@ -3,11 +3,13 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 from pathlib import Path
+from xclim.indices import frost_days
 from utils import (
     new_plot,
     range_era5_data_period,
     get_result_data_path,
-    mean_by_region
+    mean_by_region,
+    draw_latlon_map
 )
 import cartopy.crs as ccrs
 
@@ -20,19 +22,8 @@ def process_fd(ds: xr.Dataset) -> xr.DataArray:
     return fd
 
 def draw_fd(csv_path: Path):
-    df = pd.read_csv(csv_path) 
-
-    # 提取经纬度和温度
-    lats = df['lat'].values
-    lons = df['lon'].values
-    t2m = df[indicator_name].values
-    fig, ax = new_plot(lons, lats)
-
-    LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
-    T2M = t2m.reshape(LON.shape)
-    contour = ax.contourf(LON, LAT, T2M, levels=15, cmap='coolwarm_r', transform=ccrs.PlateCarree())
-    plt.colorbar(contour, label='Number of frost days',  orientation='vertical', pad=0.1)
-
+    df = pd.read_csv(csv_path)
+    draw_latlon_map(df, indicator_name,clip=True)
     plt.title('ERA5 FD')
     plt.show()
 

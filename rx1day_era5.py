@@ -9,14 +9,16 @@ from pathlib import Path
 from utils import (
     new_plot,
     get_result_data_path,
-    range_era5_data
+    range_era5_data,
+    mean_by_region,
+    range_era5_data_period
 )
 
 indicator_name = "rx1day"
 def process_rx1day(ds:xr.Dataset):
     result = max_1day_precipitation_amount(ds['pr'])
     result.name = indicator_name
-    return result
+    return result.sum(dim="time")
     
 def draw_rx1day(csv_path: Path):
     df = pd.read_csv(csv_path)
@@ -33,5 +35,5 @@ def draw_rx1day(csv_path: Path):
     plt.show()
 
 if __name__ == '__main__':
-    range_era5_data("pr", process_rx1day)
+    range_era5_data_period("pr", mean_by_region)
     draw_rx1day(get_result_data_path(indicator_name, "2000"))
