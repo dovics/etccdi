@@ -20,6 +20,9 @@ base_ds = merge_base_years('tasmin')
 cs_di = percentile_doy(base_ds['tasmin'], per=10).sel(percentiles=10)
 
 indicator_name = "csdi"
+
+# 日最低气温小于第10百分位数时，至少连续6天的年天数
+# TODO: 考虑跨年时间计算
 def process_csdi(ds: xr.Dataset):
     result = cold_spell_duration_index(ds['tasmin'], cs_di, freq="YS")
     result.name = indicator_name

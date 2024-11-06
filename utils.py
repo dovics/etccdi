@@ -283,7 +283,7 @@ def draw_country_map(df: pd.DataFrame, fill=True):
     else:
         merged_gdf.boundary.plot(edgecolor='black', linewidth=1)
     
-def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True):
+def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm"):
     gdf = gpd.read_file(province_border_geojson)
     if clip:
         geometry = [Point(xy) for xy in zip(df['lon'], df['lat'])]
@@ -297,17 +297,17 @@ def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True):
             'lon': LON.ravel()
         })
         merged_df = pd.merge(grid_df, df, on=['lat', 'lon'], how='left')
-        GDD = merged_df.pivot(index='lat', columns='lon', values=variable).values
+        VALUE = merged_df.pivot(index='lat', columns='lon', values=variable).values
     else:
         (minx, miny, maxx, maxy) = get_bounds(gdf, margin=1)
         df = df[(df['lat'] >= miny) & (df['lat'] <= maxy) & (df['lon'] >= minx) & (df['lon'] <= maxx)]
         lats = df['lat'].values
         lons = df['lon'].values
         LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
-        GDD = df[variable].values.reshape(LON.shape)
+        VALUE = df.pivot(index='lat', columns='lon', values=variable).values
         
     fig, ax = new_plot()
-    contour = ax.contourf(LON, LAT, GDD, levels=15, cmap='coolwarm', transform=ccrs.PlateCarree())
+    contour = ax.contourf(LON, LAT, VALUE, levels=15, cmap=cmap, transform=ccrs.PlateCarree())
     # ax.contour(LON, LAT, GDD, levels=3, colors='black', linewidths=0.5, transform=ccrs.PlateCarree())
     plt.colorbar(contour, label=variable,  orientation='vertical', pad=0.1)
     
