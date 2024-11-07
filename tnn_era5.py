@@ -16,9 +16,10 @@ from utils import (
 
 indicator_name = "tnn"
 def process_tnn(ds: xr.Dataset):
+    ds["tasmin"].values-=273.15
     result = tn_min(ds['tasmin'], freq="YS")
     result.name = indicator_name
-    return result.sum(dim="time")
+    return result.min(dim="time")
 
 def draw_tnn(csv_path: Path):
     df = pd.read_csv(csv_path)

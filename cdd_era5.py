@@ -1,20 +1,15 @@
 import xarray as xr
 from matplotlib import pyplot as plt 
 import pandas as pd
-import numpy as np
-import cartopy.crs as ccrs
 import xclim
 from xclim.indicators.atmos import maximum_consecutive_dry_days
 from pathlib import Path
 from utils import (
     get_result_data_path,
-    range_era5_data,
     range_era5_data_period,
     mean_by_region,
     draw_latlon_map
 )
-from config import period_start
-from datetime import datetime
 xclim.set_options(data_validation='log')
 indicator_name = "cdd"
 default_value = 10
@@ -24,7 +19,6 @@ def process_cdd(ds: xr.Dataset):
     year = ds['time'].dt.year.values.max()
     new_time = pd.date_range(start=f'{year}-01-01', end=f'{year}-12-31', freq='D')
     ds = ds.reindex(time=new_time, fill_value=default_value)
-
     result = maximum_consecutive_dry_days(ds['pr'], thresh='1 mm/day', freq='YS')
     result.name = indicator_name
     return result
