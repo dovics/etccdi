@@ -49,5 +49,5 @@ def draw_sdii(csv_path: Path):
     plt.show()
 
 if __name__ == '__main__':
-    range_era5_data_period("pr", process_sdii,mean_by_region)
+    range_era5_data_period("pr", process_sdii, mean_by_region)
     draw_sdii(get_result_data_path(indicator_name, "2021"))

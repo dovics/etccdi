@@ -213,7 +213,9 @@ def mean_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
         try:
             clipped = da.rio.clip([region.geometry])
             mean_value = clipped.mean(dim=['lat', 'lon'], skipna=True)
-            averages.append({"name": region["name"], "value": str(mean_value.values)})
+            if len(mean_value.values) != 1:
+                print(f"error for mean value length not equal to 1 for region {region["name"]}")
+            averages.append({"name": region["name"], "value": mean_value.values[0]})
         except Exception as e:
             print(region["name"], "error:", e)
             continue
@@ -235,7 +237,7 @@ def mean_by_region(da: xr.DataArray) -> pd.DataFrame:
     df_list = []
     for gdf in get_gdf_list():
         df_list.append(mean_by_gdf(da, gdf))
-    
+
     return pd.concat(df_list, ignore_index=True)
 
 def find_region_by_name(name: str) -> gpd.GeoDataFrame:
