@@ -9,13 +9,35 @@ from utils import (
     range_era5_data_period,
     mean_by_region
 )
+from datetime import datetime
 
 indicator_name = "sdii"
 default_value = 0
+
+# 非闰年 
+# 调整前    调整后
+# 10/01 -> 01/01
+# 11/01 -> 02/01
+# 11/29 -> 03/01
+# 12/30 -> 04/01
+
+# 闰年
+# 调整前    调整后
+# 10/01 -> 01/01
+# 11/01 -> 02/01
+# 11/30 -> 03/01
+# 12/31 -> 04/01
+
 def process_sdii(ds:xr.Dataset):
-    year = ds['time'].dt.year.values.max()
-    new_time = pd.date_range(start=f'{year}-01-01', end=f'{year}-12-31', freq='D')
-    ds = ds.reindex(time=new_time, fill_value=default_value)
+    times = ds['time'].dt.floor('D').values
+    duration = pd.to_timedelta(times.max() - times.min())
+    year = pd.to_datetime(times.max()).year
+    start_time = datetime.fromisoformat(f'{year}-01-01')
+    end_time = start_time + duration
+    print(ds.sel(time=f'{year-1}-12-30')['pr'].values)
+    ds = ds.assign_coords(time=pd.date_range(start=start_time, end=end_time, freq='D'))
+    ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
+    print(ds.sel(time=f'{year}-04-01')['pr'].values)
 
     result = daily_pr_intensity(ds['pr'])
     result.name = indicator_name
