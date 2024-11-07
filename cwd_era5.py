@@ -6,19 +6,16 @@ import cartopy.crs as ccrs
 from xclim.indices import maximum_consecutive_wet_days
 from pathlib import Path
 from utils import (
-    new_plot,
     get_result_data_path,
-    range_era5_data,
     range_era5_data_period,
     mean_by_region,
-    draw_latlon_map
+    draw_latlon_map,
+    reindex_ds_to_all_year,
 )
-default_value = 10
+default_value = 0
 indicator_name = "cwd"
 def process_cwd(ds:xr.Dataset):
-    year = ds['time'].dt.year.values.max()
-    new_time = pd.date_range(start=f'{year}-01-01', end=f'{year}-12-31', freq='D')
-    ds = ds.reindex(time=new_time, fill_value=default_value)
+    ds = reindex_ds_to_all_year(ds, default_value)
 
     result = maximum_consecutive_wet_days(ds['pr'], thresh='1 mm/day')
     result.name = indicator_name
@@ -32,4 +29,4 @@ def draw_cwd(csv_path: Path):
 
 if __name__ == '__main__':
     range_era5_data_period("pr", process_cwd, mean_by_region)
-    draw_cwd(get_result_data_path(indicator_name, "2022"))
+    draw_cwd(get_result_data_path(indicator_name, "2000"))

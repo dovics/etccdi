@@ -122,6 +122,25 @@ def merge_base_years(var_list: Union[list[str], str]) -> xr.Dataset:
         datesets.append(load_era5_daily_data(var_list, str(year)))
     
     return xr.concat(datesets, dim='time', coords='minimal')
+    
+def merge_base_years_period(var_list: Union[list[str], str], reindex=False, default_value=0) -> xr.Dataset:
+    datesets = []
+    if datetime.strptime(period_start, '%m-%d') > datetime.strptime(period_end, '%m-%d'): 
+        for year in range(base_start_year + 1, base_end_year + 1):
+            last_year_ds = load_era5_daily_data(var_list, str(year - 1))
+            this_year_ds = load_era5_daily_data(var_list, str(year))
+            merged_ds = xr.concat([last_year_ds, this_year_ds], dim="time")
+            selected_ds = merged_ds.sel(time=slice(f"{year - 1}-{period_start}", f"{year}-{period_end}"))
+            if reindex:
+                datesets.append(reindex_ds_to_all_year(selected_ds, default_value))
+            else:
+                datesets.append(selected_ds)
+    else:
+        for year in range(base_start_year, base_end_year + 1):
+            ds = load_era5_daily_data(var_list, str(year))
+            selected_ds = ds.sel(time=slice(f"{year}-{period_start}", f"{year}-{period_end}"))
+            datesets.append(selected_ds)
+    return xr.concat(datesets, dim='time', coords='minimal')
 
 def get_result_data_path(variable: str, year: str):
     if Path(result_data_dir).exists() == False: Path(result_data_dir).mkdir()
@@ -213,9 +232,13 @@ def mean_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
         try:
             clipped = da.rio.clip([region.geometry])
             mean_value = clipped.mean(dim=['lat', 'lon'], skipna=True)
-            if len(mean_value.values) != 1:
-                print(f"error for mean value length not equal to 1 for region {region["name"]}")
-            averages.append({"name": region["name"], "value": mean_value.values[0]})
+            if isinstance(mean_value.values, list):
+                if len(mean_value.values) != 1:
+                    print(f"error for mean value length not equal to 1 for region {region["name"]}")
+                averages.append({"name": region["name"], "value": mean_value.values[0]})
+            else:
+                averages.append({"name": region["name"], "value": mean_value.values})
+                
         except Exception as e:
             print(region["name"], "error:", e)
             continue
@@ -312,4 +335,13 @@ def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm")
     contour = ax.contourf(LON, LAT, VALUE, levels=15, cmap=cmap, transform=ccrs.PlateCarree())
     # ax.contour(LON, LAT, GDD, levels=3, colors='black', linewidths=0.5, transform=ccrs.PlateCarree())
     plt.colorbar(contour, label=variable,  orientation='vertical', pad=0.1)
-    
+
+def reindex_ds_to_all_year(ds: xr.Dataset, default_value):
+    times = ds['time'].dt.floor('D').values
+    duration = pd.to_timedelta(times.max() - times.min())
+    year = pd.to_datetime(times.max()).year
+    start_time = datetime.fromisoformat(f'{year}-01-01')
+    end_time = start_time + duration
+    ds = ds.assign_coords(time=pd.date_range(start=start_time, end=end_time, freq='D'))
+    ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
+    return ds

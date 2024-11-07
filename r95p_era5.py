@@ -2,21 +2,19 @@ import xarray as xr
 from matplotlib import pyplot as plt 
 from xclim.core.calendar import percentile_doy
 import pandas as pd
-import numpy as np
-import cartopy.crs as ccrs
+
 from xclim.indices import days_over_precip_thresh
+
 from pathlib import Path
 from utils import (
-    new_plot,
     get_result_data_path,
-    merge_base_years,
-    range_era5_data,
+    merge_base_years_period,
     draw_latlon_map,
     range_era5_data_period,
     mean_by_region
 )
 
-base_ds = merge_base_years('pr')
+base_ds = merge_base_years_period('pr')
 r95 = percentile_doy(base_ds['pr'], per=95).sel(percentiles=95)
 indicator_name = "r95p"
 def process_r95p(ds:xr.Dataset):

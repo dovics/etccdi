@@ -9,7 +9,8 @@ from utils import (
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
-    draw_latlon_map
+    draw_latlon_map,
+    reindex_ds_to_all_year
 )
 xclim.set_options(data_validation='log')
 indicator_name = "cdd"
@@ -17,18 +18,8 @@ default_value = 10
 
 # 日降水量 < 1 mm 持续天数最大值
 def process_cdd(ds: xr.Dataset):
-    # year = ds['time'].dt.year.values.max()
-    # new_time = pd.date_range(start=f'{year}-01-01', end=f'{year}-12-31', freq='D')
-    # ds = ds.reindex(time=new_time, fill_value=default_value)
-    times = ds['time'].dt.floor('D').values
-    duration = pd.to_timedelta(times.max() - times.min())
-    year = pd.to_datetime(times.max()).year
-    start_time = datetime.fromisoformat(f'{year}-01-01')
-    end_time = start_time + duration
-    # print(ds.sel(time=f'{year-1}-12-30')['pr'].values[0])
-    ds = ds.assign_coords(time=pd.date_range(start=start_time, end=end_time, freq='D'))
-    ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
-    # print(ds.sel(time=f'{year}-04-01')['pr'].values[0])
+    ds = reindex_ds_to_all_year(ds, default_value)
+    
     result = maximum_consecutive_dry_days(ds['pr'], thresh='1 mm/day', freq='YS')
     result.name = indicator_name
     return result

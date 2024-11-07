@@ -6,8 +6,8 @@ intermediate_data_dir = "intermediate_data"
 
 period_start = "10-01"
 period_end = "06-30"
-start_year = 1980
-end_year = 2023
+start_year = 1999
+end_year = 2001
 
 base_start_year = 1961
 base_end_year = 1990

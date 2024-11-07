@@ -5,14 +5,14 @@ import pandas as pd
 from xclim.indices import tn90p
 from pathlib import Path
 from utils import (
-    merge_base_years,
+    merge_base_years_period,
     get_result_data_path,
     range_era5_data_period,
     draw_latlon_map,
     mean_by_region
 )
 
-base_ds = merge_base_years('tasmin')
+base_ds = merge_base_years_period('tasmin')
 t90 = percentile_doy(base_ds['tasmin'], per=90, window=5).sel(percentiles=90)
 
 indicator_name = "tn90p"
