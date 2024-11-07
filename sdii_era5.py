@@ -34,11 +34,10 @@ def process_sdii(ds:xr.Dataset):
     year = pd.to_datetime(times.max()).year
     start_time = datetime.fromisoformat(f'{year}-01-01')
     end_time = start_time + duration
-    print(ds.sel(time=f'{year-1}-12-30')['pr'].values)
+    # print(ds.sel(time=f'{year-1}-12-30')['pr'].values[0])
     ds = ds.assign_coords(time=pd.date_range(start=start_time, end=end_time, freq='D'))
     ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
-    print(ds.sel(time=f'{year}-04-01')['pr'].values)
-
+    # print(ds.sel(time=f'{year}-04-01')['pr'].values[0])
     result = daily_pr_intensity(ds['pr'])
     result.name = indicator_name
     return result

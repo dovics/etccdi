@@ -1,36 +1,35 @@
 import xarray as xr
 from matplotlib import pyplot as plt 
-from xclim.core.calendar import percentile_doy
 import pandas as pd
-import numpy as np
-import cartopy.crs as ccrs
+
 from xclim.indices import max_n_day_precipitation_amount
 from pathlib import Path
+from datetime import datetime
 from utils import (
-    new_plot,
     get_result_data_path,
-    range_era5_data,
     range_era5_data_period,
-    mean_by_region
+    mean_by_region,
+    draw_latlon_map
 )
-
+default_value = 0
 indicator_name = "rx5day"
 def process_rx5day(ds:xr.Dataset):
+    times = ds['time'].dt.floor('D').values
+    duration = pd.to_timedelta(times.max() - times.min())
+    year = pd.to_datetime(times.max()).year
+    start_time = datetime.fromisoformat(f'{year}-01-01')
+    end_time = start_time + duration
+    # print(ds.sel(time=f'{year-1}-12-30')['pr'].values[0])
+    ds = ds.assign_coords(time=pd.date_range(start=start_time, end=end_time, freq='D'))
+    ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
+    # print(ds.sel(time=f'{year}-04-01')['pr'].values[0])
     result = max_n_day_precipitation_amount(ds['pr'],window=5)
     result.name = indicator_name
-    return result.sum(dim="time")
+    return result
     
 def draw_rx5day(csv_path: Path):
     df = pd.read_csv(csv_path)
-    # 提取经纬度和温度
-    lats = df['lat'].values
-    lons = df['lon'].values
-    rx5day = df[indicator_name].values
-    fig, ax = new_plot(lons, lats)
-    LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
-    RX5DAY = rx5day.reshape(LON.shape)
-    contour = ax.contourf(LON, LAT, RX5DAY, levels=15, cmap='coolwarm', transform=ccrs.PlateCarree())
-    plt.colorbar(contour, label='Number of days with daily minimum temperature below the 10th percentile.',  orientation='vertical', pad=0.1)
+    draw_latlon_map(df, indicator_name,clip=True)
     plt.title('ERA5 RX5DAY')
     plt.show()
 
