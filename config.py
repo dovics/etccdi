@@ -6,7 +6,7 @@ intermediate_data_dir = "intermediate_data"
 
 period_start = "10-01"
 period_end = "06-30"
-start_year = 2020
+start_year = 1980
 end_year = 2023
 
 base_start_year = 1961
