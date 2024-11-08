@@ -1,18 +1,14 @@
 from matplotlib import pyplot as plt 
 import xarray as xr
-import numpy as np
 import pandas as pd
 from xclim.indices import daily_temperature_range
 from pathlib import Path
 from utils import (
-    new_plot,
-    range_era5_data,
     get_result_data_path,
     draw_latlon_map,
     range_era5_data_period,
     mean_by_region
 )
-import cartopy.crs as ccrs
 from download.era5 import get_era5_data
 
 indicator_name = "dtr"
@@ -20,7 +16,6 @@ def process_dtr(ds: xr.Dataset) -> xr.DataArray:
     ds = ds.sortby('time')
     dtr = daily_temperature_range(ds['tasmin'], ds['tasmax'])
     dtr.name = indicator_name
-    
     return dtr.sum(dim="time")
 
 def draw_dtr(csv_path: Path):

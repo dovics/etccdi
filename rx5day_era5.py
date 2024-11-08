@@ -4,25 +4,17 @@ import pandas as pd
 
 from xclim.indices import max_n_day_precipitation_amount
 from pathlib import Path
-from datetime import datetime
 from utils import (
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
-    draw_latlon_map
+    draw_latlon_map,
+    reindex_ds_to_all_year
 )
 default_value = 0
 indicator_name = "rx5day"
 def process_rx5day(ds:xr.Dataset):
-    times = ds['time'].dt.floor('D').values
-    duration = pd.to_timedelta(times.max() - times.min())
-    year = pd.to_datetime(times.max()).year
-    start_time = datetime.fromisoformat(f'{year}-01-01')
-    end_time = start_time + duration
-    # print(ds.sel(time=f'{year-1}-12-30')['pr'].values[0])
-    ds = ds.assign_coords(time=pd.date_range(start=start_time, end=end_time, freq='D'))
-    ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
-    # print(ds.sel(time=f'{year}-04-01')['pr'].values[0])
+    ds = reindex_ds_to_all_year(ds, default_value)
     result = max_n_day_precipitation_amount(ds['pr'],window=5)
     result.name = indicator_name
     return result

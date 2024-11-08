@@ -19,7 +19,6 @@ default_value = 10
 # 日降水量 < 1 mm 持续天数最大值
 def process_cdd(ds: xr.Dataset):
     ds = reindex_ds_to_all_year(ds, default_value)
-    
     result = maximum_consecutive_dry_days(ds['pr'], thresh='1 mm/day', freq='YS')
     result.name = indicator_name
     return result

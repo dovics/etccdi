@@ -7,7 +7,8 @@ from utils import (
     get_result_data_path,
     draw_latlon_map,
     range_era5_data_period,
-    mean_by_region
+    mean_by_region,
+    reindex_ds_to_all_year
 )
 from datetime import datetime
 
@@ -28,16 +29,9 @@ default_value = 0
 # 11/30 -> 03/01
 # 12/31 -> 04/01
 
+default_value = 0
 def process_sdii(ds:xr.Dataset):
-    times = ds['time'].dt.floor('D').values
-    duration = pd.to_timedelta(times.max() - times.min())
-    year = pd.to_datetime(times.max()).year
-    start_time = datetime.fromisoformat(f'{year}-01-01')
-    end_time = start_time + duration
-    # print(ds.sel(time=f'{year-1}-12-30')['pr'].values[0])
-    ds = ds.assign_coords(time=pd.date_range(start=start_time, end=end_time, freq='D'))
-    ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
-    # print(ds.sel(time=f'{year}-04-01')['pr'].values[0])
+    ds = reindex_ds_to_all_year(ds, default_value)
     result = daily_pr_intensity(ds['pr'])
     result.name = indicator_name
     return result

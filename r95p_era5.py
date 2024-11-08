@@ -14,7 +14,7 @@ from utils import (
     mean_by_region
 )
 
-base_ds = merge_base_years_period('pr')
+base_ds = merge_base_years_period('pr',full_year=False)
 r95 = percentile_doy(base_ds['pr'], per=95).sel(percentiles=95)
 indicator_name = "r95p"
 def process_r95p(ds:xr.Dataset):

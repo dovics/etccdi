@@ -12,7 +12,7 @@ from utils import (
     mean_by_region
 )
 
-base_ds = merge_base_years_period('tasmin')
+base_ds = merge_base_years_period('tasmin',full_year=False)
 t90 = percentile_doy(base_ds['tasmin'], per=90, window=5).sel(percentiles=90)
 
 indicator_name = "tn90p"

@@ -19,13 +19,13 @@ from utils import (
 indicator_name = "csdi"
 default_value = 999
 
-base_ds = merge_base_years_period('tasmin', reindex=True, default_value = default_value)
+base_ds = merge_base_years_period('tasmin', reindex=True,full_year=False,default_value = default_value)
 p10 = percentile_doy(base_ds['tasmin'], per=10).sel(percentiles=10)
 
 # 日最低气温小于第10百分位数时，至少连续6天的年天数
 # TODO: 考虑跨年时间计算
 def process_csdi(ds: xr.Dataset):
-    ds = reindex_ds_to_all_year(ds, default_value)
+    ds = reindex_ds_to_all_year(ds, default_value, full_year=False)
     result = cold_spell_duration_index(ds['tasmin'], p10, freq="YS")
     result.name = indicator_name
     return result
@@ -38,4 +38,4 @@ def draw_csdi(csv_path: Path):
     
 if __name__ == '__main__':
     range_era5_data_period("tasmin", process_csdi, mean_by_region)
-    draw_csdi(get_result_data_path(indicator_name, "2001"))
+    draw_csdi(get_result_data_path(indicator_name, "2021"))

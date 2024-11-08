@@ -123,7 +123,7 @@ def merge_base_years(var_list: Union[list[str], str]) -> xr.Dataset:
     
     return xr.concat(datesets, dim='time', coords='minimal')
     
-def merge_base_years_period(var_list: Union[list[str], str], reindex=False, default_value=0) -> xr.Dataset:
+def merge_base_years_period(var_list: Union[list[str], str], reindex=False,full_year=True, default_value=0) -> xr.Dataset:
     datesets = []
     if datetime.strptime(period_start, '%m-%d') > datetime.strptime(period_end, '%m-%d'): 
         for year in range(base_start_year + 1, base_end_year + 1):
@@ -132,7 +132,7 @@ def merge_base_years_period(var_list: Union[list[str], str], reindex=False, defa
             merged_ds = xr.concat([last_year_ds, this_year_ds], dim="time")
             selected_ds = merged_ds.sel(time=slice(f"{year - 1}-{period_start}", f"{year}-{period_end}"))
             if reindex:
-                datesets.append(reindex_ds_to_all_year(selected_ds, default_value))
+                datesets.append(reindex_ds_to_all_year(selected_ds,full_year,default_value))
             else:
                 datesets.append(selected_ds)
     else:
@@ -336,12 +336,13 @@ def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm")
     # ax.contour(LON, LAT, GDD, levels=3, colors='black', linewidths=0.5, transform=ccrs.PlateCarree())
     plt.colorbar(contour, label=variable,  orientation='vertical', pad=0.1)
 
-def reindex_ds_to_all_year(ds: xr.Dataset, default_value):
+def reindex_ds_to_all_year(ds: xr.Dataset,default_value,full_year=True):
     times = ds['time'].dt.floor('D').values
     duration = pd.to_timedelta(times.max() - times.min())
     year = pd.to_datetime(times.max()).year
     start_time = datetime.fromisoformat(f'{year}-01-01')
     end_time = start_time + duration
     ds = ds.assign_coords(time=pd.date_range(start=start_time, end=end_time, freq='D'))
-    ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
+    if full_year:
+        ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
     return ds

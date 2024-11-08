@@ -16,7 +16,6 @@ default_value = 0
 indicator_name = "cwd"
 def process_cwd(ds:xr.Dataset):
     ds = reindex_ds_to_all_year(ds, default_value)
-
     result = maximum_consecutive_wet_days(ds['pr'], thresh='1 mm/day')
     result.name = indicator_name
     return result

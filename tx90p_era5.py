@@ -8,7 +8,7 @@ from xclim.indices import tx90p
 from pathlib import Path
 from utils import (
     new_plot,
-    merge_base_years,
+    merge_base_years_period,
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
@@ -17,7 +17,7 @@ from utils import (
 )
 
 # tasmax
-base_ds = merge_base_years('tasmax')
+base_ds = merge_base_years_period('tasmax',full_year=False)
 t90 = percentile_doy(base_ds['tasmax'], per=90, window=5).sel(percentiles=90)
 
 indicator_name = "tn90p"
