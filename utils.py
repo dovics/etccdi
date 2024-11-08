@@ -22,6 +22,8 @@ from config import  (
     result_data_dir,
     intermediate_data_dir,
     
+    country_list,
+    
     start_year,
     end_year,
     base_start_year, 
@@ -223,12 +225,39 @@ def new_plot(show_border=True, show_grid=True, show_country=False, subregions=No
     
     return fig, ax
 
+
+def max_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
+    da = da.load().astype(float)
+    da = da.rio.write_crs(gdf.crs)
+    da = da.rio.set_spatial_dims(x_dim='lon', y_dim='lat')
+    averages = []
+    for _, region in gdf.iterrows():
+        if region['name'] not in country_list: continue
+        try:
+            clipped = da.rio.clip([region.geometry])
+            mean_value = clipped.max(dim=['lat', 'lon'], skipna=True)
+            if isinstance(mean_value.values, list):
+                if len(mean_value.values) != 1:
+                    print(f"error for mean value length not equal to 1 for region {region["name"]}")
+                averages.append({"name": region["name"], "value": mean_value.values[0]})
+            else:
+                averages.append({"name": region["name"], "value": mean_value.values})
+                
+        except Exception as e:
+            print(region["name"], "error:", e)
+            continue
+
+    results_df = pd.DataFrame(averages)
+    return results_df
+
+
 def mean_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
     da = da.load().astype(float)
     da = da.rio.write_crs(gdf.crs)
     da = da.rio.set_spatial_dims(x_dim='lon', y_dim='lat')
     averages = []
     for _, region in gdf.iterrows():
+        if region['name'] not in country_list: continue
         try:
             clipped = da.rio.clip([region.geometry])
             mean_value = clipped.mean(dim=['lat', 'lon'], skipna=True)
@@ -260,6 +289,13 @@ def mean_by_region(da: xr.DataArray) -> pd.DataFrame:
     df_list = []
     for gdf in get_gdf_list():
         df_list.append(mean_by_gdf(da, gdf))
+
+    return pd.concat(df_list, ignore_index=True)
+
+def max_by_region(da: xr.DataArray) -> pd.DataFrame:
+    df_list = []
+    for gdf in get_gdf_list():
+        df_list.append(max_by_gdf(da, gdf))
 
     return pd.concat(df_list, ignore_index=True)
 
@@ -299,7 +335,7 @@ def draw_country_map(df: pd.DataFrame, fill=True):
                 region["value"] = region_value['value'].item()
             else:
                 region["value"] = None
-                
+
             region_list.append(gpd.GeoDataFrame([region], geometry=[region.geometry], crs=gdf.crs))
     merged_gdf = gpd.pd.concat(region_list)
     if fill:
@@ -331,7 +367,7 @@ def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm")
         LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
         VALUE = df.pivot(index='lat', columns='lon', values=variable).values
         
-    fig, ax = new_plot()
+    fig, ax = new_plot(subregions=country_list)
     contour = ax.contourf(LON, LAT, VALUE, levels=15, cmap=cmap, transform=ccrs.PlateCarree())
     # ax.contour(LON, LAT, GDD, levels=3, colors='black', linewidths=0.5, transform=ccrs.PlateCarree())
     plt.colorbar(contour, label=variable,  orientation='vertical', pad=0.1)
