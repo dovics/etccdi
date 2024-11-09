@@ -144,8 +144,10 @@ def merge_base_years_period(var_list: Union[list[str], str], reindex=False,full_
             datesets.append(selected_ds)
     return xr.concat(datesets, dim='time', coords='minimal')
 
-def get_result_data_path(variable: str, year: str):
+def get_result_data_path(variable: str, year: str = None):
     if Path(result_data_dir).exists() == False: Path(result_data_dir).mkdir()
+    if year is None:
+        return f"{result_data_dir}/{variable}_era5.csv"
     return f"{result_data_dir}/{variable}_era5_{year}.csv"
 
 era5_variables = {
@@ -382,3 +384,14 @@ def reindex_ds_to_all_year(ds: xr.Dataset,default_value,full_year=True):
     if full_year:
         ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
     return ds
+
+def merge_post_process_result(variable_name: str):
+    df_list = []
+    for year in range(start_year+1, end_year+1):
+        csv_path = get_result_data_path(variable_name+"_post_process", year)
+        df = pd.read_csv(csv_path, index_col="name")
+        df.rename(columns={"value": year}, inplace=True)
+        df_list.append(df)
+    
+    result = pd.concat(df_list, axis=1)
+    result.to_csv(get_result_data_path(variable_name+"_post_process"))
