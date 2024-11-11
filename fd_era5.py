@@ -5,12 +5,16 @@ import pandas as pd
 from pathlib import Path
 from xclim.indices import frost_days
 from utils import (
-    new_plot,
+    merge_intermediate_post_process,
     range_era5_data_period,
+    get_intermediate_data,
     get_result_data_path,
     mean_by_region,
-    draw_latlon_map
+    draw_latlon_map,
+    get_result_data
 )
+from outlier import df_outliers_iqr
+
 import cartopy.crs as ccrs
 
 
@@ -21,12 +25,13 @@ def process_fd(ds: xr.Dataset) -> xr.DataArray:
     fd.name = indicator_name
     return fd
 
-def draw_fd(csv_path: Path):
-    df = pd.read_csv(csv_path)
+def draw_fd(df: pd.DataFrame):
     draw_latlon_map(df, indicator_name,clip=True)
     plt.title('ERA5 FD')
     plt.show()
 
 if __name__ == '__main__':
     range_era5_data_period("tasmin", process_fd, mean_by_region)
-    draw_fd(get_result_data_path(indicator_name, "2000"))
+    df = merge_intermediate_post_process(indicator_name)
+    df = df_outliers_iqr(df)
+    df.to_csv(get_result_data_path(indicator_name))

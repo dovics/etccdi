@@ -90,10 +90,10 @@ def range_era5_data(var_list: Union[list[str], str], process: callable, postproc
     for year in range(start_year, end_year + 1):
         ds = process(load_era5_daily_data(var_list, str(year)))
         if ds is None: continue
-        ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
+        ds.to_dataframe().to_csv(get_intermediate_data_path(ds.name, str(year)))
         if postprocess: 
             df = postprocess(ds)
-            df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)), index=False)
+            df.to_csv(get_intermediate_data_path(ds.name + "_post_process", str(year)), index=False)
 
 def range_era5_data_period(var_list: Union[list[str], str], process: callable, postprocess: callable = None):
     if isinstance(var_list, str): var_list = [var_list]
@@ -101,10 +101,10 @@ def range_era5_data_period(var_list: Union[list[str], str], process: callable, p
     if datetime.strptime(period_start, '%m-%d') < datetime.strptime(period_end, '%m-%d'): 
         for year in range(start_year, end_year + 1):
             ds = process(load_era5_daily_data(var_list, str(year)))
-            ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))
+            ds.to_dataframe().to_csv(get_intermediate_data_path(ds.name, str(year)))
             if postprocess: 
                 df = postprocess(ds)
-                df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)), index=False)
+                df.to_csv(get_intermediate_data_path(ds.name + "_post_process", str(year)), index=False)
         return
     
     for year in range(start_year + 1, end_year + 1):
@@ -113,10 +113,10 @@ def range_era5_data_period(var_list: Union[list[str], str], process: callable, p
         merged_ds = xr.concat([last_year_ds, this_year_ds], dim="time")
         selected_ds = merged_ds.sel(time=slice(f"{year - 1}-{period_start}", f"{year}-{period_end}"))
         ds = process(selected_ds)
-        ds.to_dataframe().to_csv(get_result_data_path(ds.name, str(year)))   
+        ds.to_dataframe().to_csv(get_intermediate_data_path(ds.name, str(year)))   
         if postprocess: 
             df = postprocess(ds)
-            df.to_csv(get_result_data_path(ds.name + "_post_process", str(year)), index=False)
+            df.to_csv(get_intermediate_data_path(ds.name + "_post_process", str(year)), index=False)
 
 def merge_base_years(var_list: Union[list[str], str]) -> xr.Dataset:
     datesets = []
@@ -144,11 +144,24 @@ def merge_base_years_period(var_list: Union[list[str], str], reindex=False,full_
             datesets.append(selected_ds)
     return xr.concat(datesets, dim='time', coords='minimal')
 
-def get_result_data_path(variable: str, year: str = None):
+def get_result_data_path(variable: str):
     if Path(result_data_dir).exists() == False: Path(result_data_dir).mkdir()
+    return f"{result_data_dir}/{variable}_era5.csv"
+
+def get_result_data(variable: str, year: str = None):
+    df = pd.read_csv(get_result_data_path(variable))
+    if year is None: return df
+    
+    return df[df["year"] == year]
+
+def get_intermediate_data_path(variable: str, year: str = None):
+    if Path(intermediate_data_dir).exists() == False: Path(intermediate_data_dir).mkdir()
     if year is None:
-        return f"{result_data_dir}/{variable}_era5.csv"
-    return f"{result_data_dir}/{variable}_era5_{year}.csv"
+        return f"{intermediate_data_dir}/{variable}_era5.csv"
+    return f"{intermediate_data_dir}/{variable}_era5_{year}.csv"
+    
+def get_intermediate_data(variable: str, year: str = None):
+    return pd.read_csv(get_intermediate_data_path(variable, year))
 
 era5_variables = {
     "tas": "t2m",
@@ -267,6 +280,8 @@ def mean_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
                 if len(mean_value.values) != 1:
                     print(f"error for mean value length not equal to 1 for region {region["name"]}")
                 averages.append({"name": region["name"], "value": mean_value.values[0]})
+            elif isinstance(mean_value.values, np.ndarray):
+                averages.append({"name": region["name"], "value": mean_value.values.mean()})
             else:
                 averages.append({"name": region["name"], "value": mean_value.values})
                 
@@ -385,13 +400,30 @@ def reindex_ds_to_all_year(ds: xr.Dataset,default_value,full_year=True):
         ds = ds.reindex(time=pd.date_range(start=f"{year}-01-01", end=f"{year}-12-31", freq='D'), fill_value=default_value)
     return ds
 
-def merge_post_process_result(variable_name: str):
+def merge_intermediate_post_process(variable_name: str):
     df_list = []
     for year in range(start_year+1, end_year+1):
-        csv_path = get_result_data_path(variable_name+"_post_process", year)
-        df = pd.read_csv(csv_path, index_col="name")
-        df.rename(columns={"value": year}, inplace=True)
+        csv_path = get_intermediate_data_path(variable_name+"_post_process", year)
+        df = pd.read_csv(csv_path)
+        df["year"] = year
+        df.set_index(["year", "name"])
         df_list.append(df)
     
-    result = pd.concat(df_list, axis=1)
-    result.to_csv(get_result_data_path(variable_name+"_post_process"))
+    df = pd.concat(df_list)
+    df.to_csv(get_intermediate_data_path(variable_name+"_post_process"))
+    df.set_index(["year", "name"], inplace=True)
+    return df
+
+def merge_intermediate(variable_name: str):
+    df_list = []
+    for year in range(start_year+1, end_year+1):
+        csv_path = get_intermediate_data_path(variable_name, year)
+        df = pd.read_csv(csv_path)
+        df["year"] = year
+        df.set_index(["year", "lat", "lon"])
+        df_list.append(df)
+    
+    df = pd.concat(df_list)
+    df.to_csv(get_intermediate_data_path(variable_name))
+    df.set_index(["year", "lat", "lon"], inplace=True)
+    return df

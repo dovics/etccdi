@@ -13,8 +13,11 @@ from utils import (
     range_era5_data_period,
     mean_by_region,
     reindex_ds_to_all_year,
-    draw_latlon_map
+    draw_latlon_map,
+    merge_intermediate_post_process
 )
+
+from outlier import df_outliers_iqr
 
 indicator_name = "csdi"
 default_value = 999
@@ -38,4 +41,7 @@ def draw_csdi(csv_path: Path):
     
 if __name__ == '__main__':
     range_era5_data_period("tasmin", process_csdi, mean_by_region)
-    draw_csdi(get_result_data_path(indicator_name, "2011"))
+    #draw_csdi(get_result_data_path(indicator_name, "2011"))
+    df = merge_intermediate_post_process(indicator_name)
+    df = df_outliers_iqr(df)
+    df.to_csv(get_result_data_path(indicator_name))

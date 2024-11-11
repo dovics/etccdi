@@ -4,14 +4,16 @@ import pandas as pd
 import xclim
 from xclim.indicators.atmos import maximum_consecutive_dry_days
 from pathlib import Path
-from datetime import datetime
 from utils import (
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
     draw_latlon_map,
-    reindex_ds_to_all_year
+    reindex_ds_to_all_year,
+    merge_intermediate_post_process
 )
+
+from outlier import df_outliers_iqr
 xclim.set_options(data_validation='log')
 indicator_name = "cdd"
 default_value = 10
@@ -31,4 +33,6 @@ def draw_cdd(csv_path: Path):
 
 if __name__ == '__main__':
     range_era5_data_period("pr", process_cdd, mean_by_region)
-    draw_cdd(get_result_data_path(indicator_name, "2021"))
+    df = merge_intermediate_post_process(indicator_name)
+    df = df_outliers_iqr(df)
+    df.to_csv(get_result_data_path(indicator_name))

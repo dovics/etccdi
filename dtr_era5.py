@@ -7,8 +7,11 @@ from utils import (
     get_result_data_path,
     draw_latlon_map,
     range_era5_data_period,
-    mean_by_region
+    mean_by_region,
+    merge_intermediate_post_process
 )
+
+from outlier import df_outliers_iqr
 from download.era5 import get_era5_data
 
 indicator_name = "dtr"

@@ -12,7 +12,7 @@ from utils import (
     range_era5_data_period,
     draw_country_map,
     draw_latlon_map,
-    merge_post_process_result
+    merge_intermediate_post_process
 )
 
 indicator_name = "gdd"
@@ -34,7 +34,7 @@ def draw_gdd2(csv_path: Path):
     
 
 if __name__ == '__main__':
-    #range_era5_data_period("tas", process_gdd, max_by_region)
+    range_era5_data_period("tas", process_gdd, max_by_region)
     #draw_gdd(get_result_data_path(indicator_name, "2000"))
     #draw_gdd2(get_result_data_path(indicator_name + "_post_process", "2000"))
-    merge_post_process_result(indicator_name)
+    merge_intermediate_post_process(indicator_name)
