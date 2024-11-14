@@ -1,4 +1,4 @@
-from matplotlib import pyplot as plt 
+from matplotlib import pyplot as plt
 import xarray as xr
 import pandas as pd
 from xclim.indices import daily_temperature_range
@@ -8,26 +8,27 @@ from utils import (
     draw_latlon_map,
     range_era5_data_period,
     mean_by_region,
-    merge_intermediate_post_process
+    merge_intermediate_post_process,
 )
 
-from outlier import df_outliers_iqr
-from download.era5 import get_era5_data
-
 indicator_name = "dtr"
+
+
 def process_dtr(ds: xr.Dataset) -> xr.DataArray:
-    ds = ds.sortby('time')
-    dtr = daily_temperature_range(ds['tasmin'], ds['tasmax'])
+    ds = ds.sortby("time")
+    dtr = daily_temperature_range(ds["tasmin"], ds["tasmax"])
     dtr.name = indicator_name
     return dtr.sum(dim="time")
 
+
 def draw_dtr(csv_path: Path):
     df = pd.read_csv(csv_path)
-    draw_latlon_map(df, indicator_name,clip=True)
-    plt.title('ERA5 DTR')
+    draw_latlon_map(df, indicator_name, clip=True)
+    plt.title("ERA5 DTR")
     plt.show()
 
-if __name__ == '__main__':
-    get_era5_data(["tasmax", "tasmin"])
-    range_era5_data_period(["tasmax", "tasmin"], process_dtr,mean_by_region)
-    draw_dtr(get_result_data_path(indicator_name, "2000"))
+
+if __name__ == "__main__":
+    range_era5_data_period(["tasmax", "tasmin"], process_dtr, mean_by_region)
+    df = merge_intermediate_post_process(indicator_name)
+    df.to_csv(get_result_data_path(indicator_name))

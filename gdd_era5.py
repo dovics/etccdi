@@ -35,6 +35,5 @@ def draw_gdd2(csv_path: Path):
 
 if __name__ == '__main__':
     range_era5_data_period("tas", process_gdd, max_by_region)
-    #draw_gdd(get_result_data_path(indicator_name, "2000"))
-    #draw_gdd2(get_result_data_path(indicator_name + "_post_process", "2000"))
-    merge_intermediate_post_process(indicator_name)
+    df = merge_intermediate_post_process(indicator_name)
+    df.to_csv(get_result_data_path(indicator_name))

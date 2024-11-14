@@ -1,4 +1,4 @@
-from matplotlib import pyplot as plt 
+from matplotlib import pyplot as plt
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -11,27 +11,30 @@ from utils import (
     get_result_data_path,
     mean_by_region,
     draw_latlon_map,
-    get_result_data
+    get_result_data,
 )
-from outlier import df_outliers_iqr
+
 
 import cartopy.crs as ccrs
 
 
 # FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0oC.
 indicator_name = "fd"
+
+
 def process_fd(ds: xr.Dataset) -> xr.DataArray:
-    fd = (ds['tasmin'] - 273.15 < 0).sum(dim='time')
+    fd = (ds["tasmin"] - 273.15 < 0).sum(dim="time")
     fd.name = indicator_name
     return fd
 
+
 def draw_fd(df: pd.DataFrame):
-    draw_latlon_map(df, indicator_name,clip=True)
-    plt.title('ERA5 FD')
+    draw_latlon_map(df, indicator_name, clip=True)
+    plt.title("ERA5 FD")
     plt.show()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     range_era5_data_period("tasmin", process_fd, mean_by_region)
     df = merge_intermediate_post_process(indicator_name)
-    df = df_outliers_iqr(df)
     df.to_csv(get_result_data_path(indicator_name))

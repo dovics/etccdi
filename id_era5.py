@@ -6,7 +6,8 @@ from utils import (
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
-    draw_latlon_map
+    draw_latlon_map,
+    merge_intermediate_post_process
 )
 
 
@@ -25,4 +26,5 @@ def draw_id(csv_path: Path):
 
 if __name__ == '__main__':
     range_era5_data_period("tasmax", process_id,mean_by_region)
-    draw_id(get_result_data_path(indicator_name, "2000"))
+    df = merge_intermediate_post_process(indicator_name)
+    df.to_csv(get_result_data_path(indicator_name))
