@@ -32,7 +32,7 @@ def draw_tn90p(csv_path: Path):
     plt.show()
 
 
-if __name__ == "__main__":
+def calculate():
     range_era5_data_period("tasmin", process_tn90p, mean_by_region)
     df = merge_intermediate_post_process(indicator_name)
     df.to_csv(get_result_data_path(indicator_name))

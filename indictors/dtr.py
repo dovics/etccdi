@@ -28,7 +28,7 @@ def draw_dtr(csv_path: Path):
     plt.show()
 
 
-if __name__ == "__main__":
+def calculate():
     range_era5_data_period(["tasmax", "tasmin"], process_dtr, mean_by_region)
     df = merge_intermediate_post_process(indicator_name)
     df.to_csv(get_result_data_path(indicator_name))
