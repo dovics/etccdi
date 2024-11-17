@@ -11,8 +11,9 @@ from utils import (
     merge_base_years_period,
     get_result_data_path,
     merge_intermediate_post_process,
-    range_era5_data,
+    range_era5_data_period,
     mean_by_region,
+    merge_intermediate
 )
 
 base_ds = merge_base_years_period("tasmin", full_year=False)
@@ -34,7 +35,12 @@ def draw_tn10p(csv_path: Path):
     plt.show()
 
 
-def calculate():
-    range_era5_data("tasmin", process_tn10p, mean_by_region)
-    df = merge_intermediate_post_process(indicator_name)
+def calculate(process: bool = True  ):
+    if process:
+        range_era5_data_period("tasmin", process_tn10p, mean_by_region)
+
+    df_post_process = merge_intermediate_post_process(indicator_name)
+    df_post_process.to_csv(get_result_data_path(indicator_name + "_post_process"))
+    
+    df = merge_intermediate(indicator_name)
     df.to_csv(get_result_data_path(indicator_name))

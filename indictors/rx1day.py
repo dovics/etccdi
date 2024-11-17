@@ -9,6 +9,7 @@ from utils import (
     range_era5_data_period,
     draw_latlon_map,
     merge_intermediate_post_process,
+    merge_intermediate
 )
 
 indicator_name = "rx1day"
@@ -27,7 +28,12 @@ def draw_rx1day(csv_path: Path):
     plt.show()
 
 
-def calculate():
-    range_era5_data_period("pr", process_rx1day, mean_by_region)
-    df = merge_intermediate_post_process(indicator_name)
+def calculate(process: bool = True):
+    if process:
+        range_era5_data_period("pr", process_rx1day, mean_by_region)
+
+    df_post_process = merge_intermediate_post_process(indicator_name)
+    df_post_process.to_csv(get_result_data_path(indicator_name + "_post_process"))
+
+    df = merge_intermediate(indicator_name)
     df.to_csv(get_result_data_path(indicator_name))

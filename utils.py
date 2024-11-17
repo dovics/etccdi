@@ -455,7 +455,7 @@ def draw_country_map(df: pd.DataFrame, fill=True):
         merged_gdf.boundary.plot(edgecolor="black", linewidth=1)
 
 
-def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm"):
+def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm", ax = None):
     gdf = gpd.read_file(province_border_geojson)
     if clip:
         geometry = [Point(xy) for xy in zip(df["lon"], df["lat"])]
@@ -480,7 +480,9 @@ def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm")
         LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
         VALUE = df.pivot(index="lat", columns="lon", values=variable).values
 
-    fig, ax = new_plot(subregions=country_list)
+    if ax is None:
+        _, ax = new_plot(subregions=country_list)
+
     contour = ax.contourf(
         LON, LAT, VALUE, levels=15, cmap=cmap, transform=ccrs.PlateCarree()
     )

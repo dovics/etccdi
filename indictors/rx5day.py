@@ -11,6 +11,7 @@ from utils import (
     draw_latlon_map,
     reindex_ds_to_all_year,
     merge_intermediate_post_process,
+    merge_intermediate
 )
 
 default_value = 0
@@ -31,7 +32,12 @@ def draw_rx5day(csv_path: Path):
     plt.show()
 
 
-def calculate():
-    range_era5_data_period("pr", process_rx5day, mean_by_region)
-    df = merge_intermediate_post_process(indicator_name)
+def calculate(process: bool = True):
+    if process:
+        range_era5_data_period("pr", process_rx5day, mean_by_region)
+
+    df_post_process = merge_intermediate_post_process(indicator_name)
+    df_post_process.to_csv(get_result_data_path(indicator_name + "_post_process"))
+
+    df = merge_intermediate(indicator_name)
     df.to_csv(get_result_data_path(indicator_name))

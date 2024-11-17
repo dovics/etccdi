@@ -7,9 +7,8 @@ from pathlib import Path
 from datetime import datetime
 from utils import (
     merge_base_years_period,
-    merge_base_years,
     get_result_data_path,
-    range_era5_data,
+    merge_intermediate,
     range_era5_data_period,
     mean_by_region,
     reindex_ds_to_all_year,
@@ -27,7 +26,6 @@ p10 = percentile_doy(base_ds["tasmin"], per=10).sel(percentiles=10)
 
 
 # 日最低气温小于第10百分位数时，至少连续6天的年天数
-# TODO: 考虑跨年时间计算
 def process_csdi(ds: xr.Dataset):
     ds = reindex_ds_to_all_year(ds, default_value, full_year=False)
     result = cold_spell_duration_index(ds["tasmin"], p10, freq="YS")
@@ -42,7 +40,12 @@ def draw_csdi(csv_path: Path):
     plt.show()
 
 
-def calculate():
-    range_era5_data_period("tasmin", process_csdi, mean_by_region)
-    df = merge_intermediate_post_process(indicator_name)
+def calculate(process: bool = True):
+    if process:
+        range_era5_data_period("tasmin", process_csdi, mean_by_region)
+
+    df_post_process = merge_intermediate_post_process(indicator_name)
+    df_post_process.to_csv(get_result_data_path(indicator_name + "_post_process"))
+
+    df = merge_intermediate(indicator_name)
     df.to_csv(get_result_data_path(indicator_name))

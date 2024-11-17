@@ -7,12 +7,12 @@ import cartopy.crs as ccrs
 from xclim.indices import wetdays
 from pathlib import Path
 from utils import (
-    new_plot,
     get_result_data_path,
     merge_intermediate_post_process,
     draw_latlon_map,
     range_era5_data_period,
-    mean_by_region
+    mean_by_region,
+    merge_intermediate
 )
 
 indicator_name = "r20"
@@ -27,7 +27,12 @@ def draw_r10(csv_path: Path):
     plt.title('ERA5 R20')
     plt.show()
 
-def calculate():
-    range_era5_data_period("pr", process_r20,mean_by_region)
-    df = merge_intermediate_post_process(indicator_name)
+def calculate(process: bool = True):
+    if process:
+        range_era5_data_period("pr", process_r20,mean_by_region)
+
+    df_post_process = merge_intermediate_post_process(indicator_name)
+    df_post_process.to_csv(get_result_data_path(indicator_name + "_post_process"))
+
+    df = merge_intermediate(indicator_name)
     df.to_csv(get_result_data_path(indicator_name))

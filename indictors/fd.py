@@ -7,11 +7,10 @@ from xclim.indices import frost_days
 from utils import (
     merge_intermediate_post_process,
     range_era5_data_period,
-    get_intermediate_data,
     get_result_data_path,
     mean_by_region,
     draw_latlon_map,
-    get_result_data,
+    merge_intermediate,
 )
 
 
@@ -34,7 +33,12 @@ def draw_fd(df: pd.DataFrame):
     plt.show()
 
 
-def calculate():
-    range_era5_data_period("tasmin", process_fd, mean_by_region)
-    df = merge_intermediate_post_process(indicator_name)
+def calculate(process: bool = True):
+    if process:
+        range_era5_data_period("tasmin", process_fd, mean_by_region)
+
+    df_post_process = merge_intermediate_post_process(indicator_name)
+    df_post_process.to_csv(get_result_data_path(indicator_name + "_post_process"))
+
+    df = merge_intermediate(indicator_name)
     df.to_csv(get_result_data_path(indicator_name))
