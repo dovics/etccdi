@@ -8,7 +8,7 @@ from utils import (
 from matplotlib import pyplot as plt
 import cartopy.crs as ccrs
 from scipy.stats import linregress
-from plot import draw_point_map
+from plot import add_point_map
 
 indictor_list = [
     "cdd",
@@ -32,6 +32,12 @@ indictor_list = [
     "txx",
 ]
 
+def import_indictor(indictor: str):
+    module_path = f"indictors\\{indictor}.py"
+    spec = importlib.util.spec_from_file_location(indictor, module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 def calculate_indictors(indictor_list: list):
     for indictor in indictor_list:
@@ -40,12 +46,7 @@ def calculate_indictors(indictor_list: list):
         #     print(f"{indictor} already exists")
         #     continue
     
-        
-        module_path = f"indictors\\{indictor}.py"
-        spec = importlib.util.spec_from_file_location(indictor, module_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
+        module = import_indictor(indictor)
         if hasattr(module, "calculate"):
             try:
                 module.calculate(process=False)
@@ -108,17 +109,15 @@ def plot(indictor_list: list):
     fig = plt.figure(figsize=(30, 24))
     i = 0
     for indictor in indictor_list:
-        module_path = f"indictors\\{indictor}.py"
-        spec = importlib.util.spec_from_file_location(indictor, module_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        module = import_indictor(indictor)
         ax = fig.add_subplot(4, 5, i+1, projection=ccrs.PlateCarree())
         module.draw(df, ax)
-        draw_point_map(slope, indictor, ax)
+        add_point_map(slope, indictor, ax)
 
         i += 1
     
     plt.tight_layout()
+    plt.savefig("plot.png", dpi=300)
     plt.show()
 
 

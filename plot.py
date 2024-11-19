@@ -9,9 +9,8 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import Point, Polygon, MultiPolygon
+from matplotlib_scalebar.scalebar import ScaleBar
 from matplotlib.path import Path
-from matplotlib.patches import PathPatch
 from utils import get_gdf_list, find_region_by_name
 from config import country_list
 from cartopy.mpl.patch import geos_to_path
@@ -78,7 +77,7 @@ def new_plot(show_border=True, show_grid=True, show_country=False, subregions=No
 
     return fig, ax
 
-def draw_north(ax, labelsize=8, loc_x=75, loc_y=50, width=1.2, height=1.8, pad=4):
+def draw_north(ax, labelsize=8, loc_x=95, loc_y=50, width=1.2, height=1.8, pad=4):
     minx, maxx = ax.get_xlim()
     miny, maxy = ax.get_ylim()
     ylen = maxy - miny
@@ -157,10 +156,10 @@ def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm",
 
     if ax is None:
         _, ax = new_plot(subregions=country_list)
-    else:
-        draw_border(ax)
-        draw_north(ax)
-        
+    
+    draw_border(ax)
+    draw_north(ax)
+    
     contour = ax.contourf(
         LON, LAT, VALUE, levels=15, cmap=cmap, transform=ccrs.PlateCarree()
     )
@@ -170,10 +169,12 @@ def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm",
         path = Path.make_compound_path(*geos_to_path(geom))
         for col in ax.collections:
             col.set_clip_path(path, ax.transData)
-            
-    plt.colorbar(contour, label=variable, ax=ax, pad=0.05, fraction=0.03)
     
-def draw_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None):
+    add_scaler(ax, length=200)
+    
+    plt.colorbar(contour, ax=ax, pad=0.05, fraction=0.03)
+    
+def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None):
     symbols = {
         (True, False): "△",
         (True, True): "▲",
@@ -184,13 +185,25 @@ def draw_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None):
     for (up, sign), symbol in symbols.items():
         subset = df[(df[variable + "_up"] == up) & (df[variable + "_sign"] == sign)]
         for _, row in subset.iterrows():
-            ax.annotate(symbol, xy=(row["lon"], row["lat"]), transform=ccrs.PlateCarree(), fontsize='xx-small')
+            ax.annotate(symbol, xy=(row["lon"], row["lat"]), transform=ccrs.PlateCarree(), fontsize='small')
 
     handles = [
-        plt.Line2D([0], [0], marker='^', color='w', label='Sig. increase', markeredgecolor='k', markerfacecolor='k', markersize=6),
-        plt.Line2D([0], [0], marker='^', color='w', label='increase', markeredgecolor='k', markerfacecolor='none', markersize=6),
-        plt.Line2D([0], [0], marker='v', color='w', label='Sig. decrease', markeredgecolor='k', markerfacecolor='k', markersize=6),
-        plt.Line2D([0], [0], marker='v', color='w', label='decrease', markeredgecolor='k', markerfacecolor='none', markersize=6)
+        plt.Line2D([0], [0], marker='^', color='w', label='Significant increase', markeredgecolor='k', markerfacecolor='k', markersize=6),
+        plt.Line2D([0], [0], marker='^', color='w', label='Increase', markeredgecolor='k', markerfacecolor='none', markersize=6),
+        plt.Line2D([0], [0], marker='v', color='w', label='Significant decrease', markeredgecolor='k', markerfacecolor='k', markersize=6),
+        plt.Line2D([0], [0], marker='v', color='w', label='Decrease', markeredgecolor='k', markerfacecolor='none', markersize=6)
     ]
 
     ax.legend(handles=handles, loc='upper left', fontsize='xx-small')
+    
+def add_scaler(ax: plt.Axes, length: float, location=(0.1, 0.05), linewidth=3):
+    distance = length / 110.94
+    transform = ccrs.PlateCarree()
+    x0, x1, y0, y1 = ax.get_extent(transform)
+    sbx = x0 + (x1 - x0) * location[0]
+    sby = y0 + (y1 - y0) * location[1]
+    
+    bar_xs = [sbx - distance / 2, sbx + distance / 2]
+    ax.plot(bar_xs, [sby, sby], transform=transform, color='k', linewidth=linewidth)
+    ax.text(sbx, sby, str(length) + ' km', transform=transform,
+            horizontalalignment='center', verticalalignment='bottom')
