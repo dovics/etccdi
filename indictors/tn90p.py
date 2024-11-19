@@ -8,12 +8,11 @@ from utils import (
     merge_base_years_period,
     get_result_data_path,
     range_era5_data_period,
-    draw_latlon_map,
     mean_by_region,
     merge_intermediate_post_process,
     merge_intermediate
 )
-
+from plot import draw_latlon_map
 base_ds = merge_base_years_period("tasmin", full_year=False)
 t90 = percentile_doy(base_ds["tasmin"], per=90, window=5).sel(percentiles=90)
 
@@ -26,11 +25,10 @@ def process_tn90p(ds: xr.Dataset):
     return result.sum(dim="time")
 
 
-def draw_tn90p(csv_path: Path):
-    df = pd.read_csv(csv_path)
-    draw_latlon_map(df, indicator_name, clip=True)
-    plt.title("ERA5 TN90P")
-    plt.show()
+def draw(df: pd.DataFrame, ax = None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    plt.title(" TN90P")
+
 
 
 def calculate(process: bool = True):

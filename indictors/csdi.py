@@ -12,10 +12,9 @@ from utils import (
     range_era5_data_period,
     mean_by_region,
     reindex_ds_to_all_year,
-    draw_latlon_map,
     merge_intermediate_post_process,
 )
-
+from plot import draw_latlon_map
 indicator_name = "csdi"
 default_value = 999
 
@@ -33,12 +32,11 @@ def process_csdi(ds: xr.Dataset):
     return result
 
 
-def draw_csdi(csv_path: Path):
-    df = pd.read_csv(csv_path)
-    draw_latlon_map(df, indicator_name, clip=True)
-    plt.title("ERA5 CSDI")
-    plt.show()
-
+def draw(df: pd.DataFrame, ax = None):
+    cmap = plt.get_cmap("OrRd")
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
+    plt.title("CSDI")
+    
 
 def calculate(process: bool = True):
     if process:

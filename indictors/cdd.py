@@ -8,11 +8,12 @@ from utils import (
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
-    draw_latlon_map,
     reindex_ds_to_all_year,
     merge_intermediate_post_process,
     merge_intermediate
 )
+
+from plot import draw_latlon_map
 
 xclim.set_options(data_validation="log")
 indicator_name = "cdd"
@@ -27,11 +28,11 @@ def process_cdd(ds: xr.Dataset):
     return result
 
 
-def draw_cdd(csv_path: Path):
-    df = pd.read_csv(csv_path)
-    draw_latlon_map(df, indicator_name, clip=False)
-    plt.title("ERA5 CDD")
-    plt.show()
+def draw(df: pd.DataFrame, ax = None):
+    cmap = plt.get_cmap("OrRd")
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
+    plt.title("CDD")
+    
 
 
 def calculate(process: bool = True):

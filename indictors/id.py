@@ -6,11 +6,10 @@ from utils import (
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
-    draw_latlon_map,
     merge_intermediate_post_process,
     merge_intermediate
 )
-
+from plot import draw_latlon_map
 
 # ID, Number of icing days: Annual count of days when TX (daily maximum temperature) < 0oC.
 indicator_name = "id"
@@ -19,11 +18,10 @@ def process_id(ds: xr.Dataset) -> xr.DataArray:
     id.name = indicator_name
     return id
 
-def draw_id(csv_path: Path):
-    df = pd.read_csv(csv_path)
-    draw_latlon_map(df, indicator_name,clip=True)
-    plt.title('ERA5 ID')
-    plt.show()
+def draw(df: pd.DataFrame, ax = None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    plt.title(' ID')
+
 
 def calculate(process: bool = True  ):
     if process:

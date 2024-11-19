@@ -12,9 +12,9 @@ from utils import (
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
-    draw_latlon_map,
     merge_intermediate
 )
+from plot import draw_latlon_map
 
 # tasmax
 base_ds = merge_base_years_period("tasmax", full_year=False)
@@ -29,11 +29,10 @@ def process_tx90p(ds: xr.Dataset):
     return result.sum(dim="time")
 
 
-def draw_tx90p(csv_path: Path):
-    df = pd.read_csv(csv_path)
-    draw_latlon_map(df, indicator_name, clip=True)
-    plt.title("ERA5 TX90P")
-    plt.show()
+def draw(df: pd.DataFrame, ax = None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    plt.title(" TX90P")
+
 
 
 def calculate(process: bool = True):

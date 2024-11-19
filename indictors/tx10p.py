@@ -5,7 +5,6 @@ import pandas as pd
 from xclim.indices import tx10p
 from pathlib import Path
 from utils import (
-    draw_latlon_map,
     merge_base_years_period,
     get_result_data_path,
     merge_intermediate_post_process,
@@ -13,7 +12,7 @@ from utils import (
     mean_by_region,
     merge_intermediate
 )
-
+from plot import draw_latlon_map
 base_ds = merge_base_years_period("tasmax", full_year=False)
 t10 = percentile_doy(base_ds["tasmax"], per=10, window=5).sel(percentiles=10)
 
@@ -26,11 +25,10 @@ def process_tx10p(ds: xr.Dataset):
     return result.sum(dim="time")
 
 
-def draw_tx10p(csv_path: Path):
-    df = pd.read_csv(csv_path)
-    draw_latlon_map(df, indicator_name, clip=True)
-    plt.title("ERA5 TX10P")
-    plt.show()
+def draw(df: pd.DataFrame, ax = None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    plt.title(" TX10P")
+
 
 
 def calculate(process: bool = True):

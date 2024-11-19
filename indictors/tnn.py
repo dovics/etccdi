@@ -10,10 +10,10 @@ from utils import (
     merge_intermediate_post_process,
     get_result_data_path,
     range_era5_data_period,
-    draw_latlon_map,
     mean_by_region,
     merge_intermediate
 )
+from plot import draw_latlon_map
 
 indicator_name = "tnn"
 
@@ -25,11 +25,10 @@ def process_tnn(ds: xr.Dataset):
     return result.min(dim="time")
 
 
-def draw_tnn(csv_path: Path):
-    df = pd.read_csv(csv_path)
-    draw_latlon_map(df, indicator_name, clip=True)
-    plt.title("ERA5 TNN")
-    plt.show()
+def draw(df: pd.DataFrame, ax = None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    plt.title(" TNN")
+
 
 
 def calculate(process: bool = True):
