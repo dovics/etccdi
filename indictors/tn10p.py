@@ -2,10 +2,7 @@ import xarray as xr
 from matplotlib import pyplot as plt
 from xclim.core.calendar import percentile_doy
 import pandas as pd
-import numpy as np
-import cartopy.crs as ccrs
 from xclim.indices import tn10p
-from pathlib import Path
 from utils import (
     merge_base_years_period,
     get_result_data_path,
@@ -30,7 +27,7 @@ def process_tn10p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax = None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title(" TN10P")
+    plt.title("TN10P")
 
 
 

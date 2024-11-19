@@ -25,7 +25,7 @@ def process_dtr(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax = None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title(" DTR")
+    plt.title("DTR")
 
 
 def calculate(process: bool = True):

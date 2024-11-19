@@ -2,10 +2,7 @@ import xarray as xr
 from matplotlib import pyplot as plt
 from xclim.core.calendar import percentile_doy
 import pandas as pd
-import numpy as np
-import cartopy.crs as ccrs
 from xclim.indices import tx90p
-from pathlib import Path
 from utils import (
     merge_intermediate_post_process,
     merge_base_years_period,
@@ -31,7 +28,7 @@ def process_tx90p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax = None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title(" TX90P")
+    plt.title("TX90P")
 
 
 

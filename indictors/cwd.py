@@ -2,9 +2,7 @@ import xarray as xr
 from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
-import cartopy.crs as ccrs
 from xclim.indices import maximum_consecutive_wet_days
-from pathlib import Path
 from utils import (
     get_result_data_path,
     range_era5_data_period,

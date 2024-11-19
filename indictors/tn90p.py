@@ -27,7 +27,7 @@ def process_tn90p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax = None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title(" TN90P")
+    plt.title("TN90P")
 
 
 

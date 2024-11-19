@@ -1,11 +1,7 @@
 import xarray as xr
 from matplotlib import pyplot as plt 
-from xclim.core.calendar import percentile_doy
-import pandas as pd
-import numpy as np
-import cartopy.crs as ccrs
 from xclim.indices import wetdays
-from pathlib import Path
+import pandas as pd
 from utils import (
     get_result_data_path,
     merge_intermediate_post_process,
@@ -23,7 +19,7 @@ def process_r20(ds:xr.Dataset):
     
 def draw(df: pd.DataFrame, ax = None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title(' R20')
+    plt.title('R20')
 
 def calculate(process: bool = True):
     if process:

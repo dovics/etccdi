@@ -26,7 +26,7 @@ def process_fd(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax = None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title(" FD")
+    plt.title("FD")
 
 
 

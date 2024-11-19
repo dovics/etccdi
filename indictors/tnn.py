@@ -1,11 +1,7 @@
 import xarray as xr
 from matplotlib import pyplot as plt
-from xclim.core.calendar import percentile_doy
-import pandas as pd
-import numpy as np
-import cartopy.crs as ccrs
 from xclim.indices import tn_min
-from pathlib import Path
+import pandas as pd
 from utils import (
     merge_intermediate_post_process,
     get_result_data_path,
@@ -27,7 +23,7 @@ def process_tnn(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax = None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title(" TNN")
+    plt.title("TNN")
 
 
 

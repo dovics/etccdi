@@ -29,7 +29,7 @@ def process_r95p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax = None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title(" R95P")
+    plt.title("R95P")
 
 
 def calculate(process: bool = True  ):

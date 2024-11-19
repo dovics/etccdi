@@ -41,7 +41,7 @@ def process_sdii(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax = None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title(" SDII")
+    plt.title("SDII")
 
 
 def calculate(process: bool = True):
