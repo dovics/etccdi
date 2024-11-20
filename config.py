@@ -1,4 +1,4 @@
-import os
+import cartopy.crs as ccrs
 
 country_list = [
     "伊宁县",
@@ -62,3 +62,8 @@ use_cache = True
 
 download_era5 = False
 use_download_cache = use_cache
+
+# crs = ccrs.UTM(zone=48, southern_hemisphere=False)
+# crs = ccrs.PlateCarree()
+# crs = ccrs.Mercator()
+crs = ccrs.Robinson()

@@ -13,27 +13,30 @@ from utils import (
 )
 from plot import draw_latlon_map
 
-
-# FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0oC.
-indicator_name = "fd"
+from xclim.indicators.atmos import relative_humidity_from_dewpoint
 
 
-def process_fd(ds: xr.Dataset) -> xr.DataArray:
-    fd = (ds["tasmin"] - 273.15 < 0).sum(dim="time")
-    fd.name = indicator_name
-    return fd
+# HUR, Relative humidity: Daily mean relative humidity.
+indicator_name = "hur"
+
+
+def process_hur(ds: xr.Dataset) -> xr.DataArray:
+    hur = relative_humidity_from_dewpoint(tas=ds["tas"], tdps=ds["tdps"])
+
+    result = hur.mean(dim="time")
+    result.name = indicator_name
+    return result
 
 
 def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("OrRd")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title("FD")
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    plt.title("HUR")
 
 
 
 def calculate(process: bool = True):
     if process:
-        range_era5_data_period("tasmin", process_fd, mean_by_region)
+        range_era5_data_period(["tdps", "tas"], process_hur, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)
     df_post_process.to_csv(get_result_data_path(indicator_name + "_post_process"))

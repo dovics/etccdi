@@ -22,7 +22,8 @@ def process_gdd(ds: xr.Dataset):
 
 
 def draw(df: pd.DataFrame, ax = None):
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    cmap = plt.get_cmap("OrRd")
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
     plt.title(' GDD')
     
 

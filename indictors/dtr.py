@@ -24,7 +24,8 @@ def process_dtr(ds: xr.Dataset) -> xr.DataArray:
 
 
 def draw(df: pd.DataFrame, ax = None):
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    cmap = plt.get_cmap("OrRd")
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
     plt.title("DTR")
 
 

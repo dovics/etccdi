@@ -12,7 +12,7 @@ import geopandas as gpd
 from matplotlib_scalebar.scalebar import ScaleBar
 from matplotlib.path import Path
 from utils import get_gdf_list, find_region_by_name
-from config import country_list
+from config import country_list, crs
 from cartopy.mpl.patch import geos_to_path
 
 province_full_geojson = "static/xinjiang_full.json"
@@ -22,18 +22,17 @@ def draw_border(ax, gdf = None):
     if gdf is None:
         gdf = gpd.read_file(province_border_geojson)
     provinces = cfeat.ShapelyFeature(
-        gdf.geometry, ccrs.PlateCarree(), edgecolor="k", alpha=0.7, facecolor="none"
+        gdf.geometry, crs, edgecolor="k", alpha=0.7, facecolor="none"
     )
     ax.add_feature(provinces, linewidth=1)
 
 def new_plot(show_border=True, show_grid=True, show_country=False, subregions=None):
-    proj = ccrs.PlateCarree()
     fig = plt.figure(figsize=(6, 4), dpi=200)
-    ax = fig.subplots(1, 1, subplot_kw={"projection": proj})
+    ax = fig.subplots(1, 1, subplot_kw={"projection": crs})
 
     gdf = gpd.read_file(province_border_geojson)
     (minx, miny, maxx, maxy) = get_bounds(gdf, margin=1)
-    ax.set_extent([minx, maxx, miny, maxy], crs=proj)
+    ax.set_extent([minx, maxx, miny, maxy], crs=crs)
     if not show_country and show_border:
         draw_border(ax, gdf=gdf)
 
@@ -46,13 +45,13 @@ def new_plot(show_border=True, show_grid=True, show_country=False, subregions=No
                 )
         merged_gdf = gpd.pd.concat(region_list)
         provinces = cfeat.ShapelyFeature(
-            merged_gdf.geometry, proj, edgecolor="k", alpha=0.7, facecolor="none"
+            merged_gdf.geometry, crs, edgecolor="k", alpha=0.7, facecolor="none"
         )
         ax.add_feature(provinces, linewidth=1)
 
     if show_grid:
         gl = ax.gridlines(
-            crs=proj,
+            crs=crs,
             draw_labels=True,
             linewidth=1.2,
             color="k",
@@ -64,7 +63,7 @@ def new_plot(show_border=True, show_grid=True, show_country=False, subregions=No
         for subregion in subregions:
             region = find_region_by_name(subregion)
             regionFeature = cfeat.ShapelyFeature(
-                region.geometry, proj, edgecolor="red", alpha=0.7, facecolor="none"
+                region.geometry, crs, edgecolor="red", alpha=0.7, facecolor="none"
             )
             ax.add_feature(regionFeature, linewidth=1)
 
@@ -161,11 +160,11 @@ def draw_latlon_map(df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm",
     draw_north(ax)
     
     contour = ax.contourf(
-        LON, LAT, VALUE, levels=15, cmap=cmap, transform=ccrs.PlateCarree()
+        LON, LAT, VALUE, levels=15, cmap=cmap, transform=crs
     )
     
     if clip:
-        geom = ax.projection.project_geometry(gdf.geometry.unary_union, ccrs.PlateCarree())
+        geom = ax.projection.project_geometry(gdf.geometry.unary_union, crs)
         path = Path.make_compound_path(*geos_to_path(geom))
         for col in ax.collections:
             col.set_clip_path(path, ax.transData)
@@ -185,7 +184,7 @@ def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None):
     for (up, sign), symbol in symbols.items():
         subset = df[(df[variable + "_up"] == up) & (df[variable + "_sign"] == sign)]
         for _, row in subset.iterrows():
-            ax.annotate(symbol, xy=(row["lon"], row["lat"]), transform=ccrs.PlateCarree(), fontsize='small')
+            ax.annotate(symbol, xy=(row["lon"], row["lat"]), transform=crs, fontsize='small')
 
     handles = [
         plt.Line2D([0], [0], marker='^', color='w', label='Significant increase', markeredgecolor='k', markerfacecolor='k', markersize=6),
@@ -198,12 +197,11 @@ def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None):
     
 def add_scaler(ax: plt.Axes, length: float, location=(0.1, 0.05), linewidth=3):
     distance = length / 110.94
-    transform = ccrs.PlateCarree()
-    x0, x1, y0, y1 = ax.get_extent(transform)
+    x0, x1, y0, y1 = ax.get_extent(crs)
     sbx = x0 + (x1 - x0) * location[0]
     sby = y0 + (y1 - y0) * location[1]
     
     bar_xs = [sbx - distance / 2, sbx + distance / 2]
-    ax.plot(bar_xs, [sby, sby], transform=transform, color='k', linewidth=linewidth)
-    ax.text(sbx, sby, str(length) + ' km', transform=transform,
+    ax.plot(bar_xs, [sby, sby], transform=crs, color='k', linewidth=linewidth)
+    ax.text(sbx, sby, str(length) + ' km', transform=crs,
             horizontalalignment='center', verticalalignment='bottom')

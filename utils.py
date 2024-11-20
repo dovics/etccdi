@@ -234,8 +234,8 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
         ds[era5_variables[variable]].attrs["units"] = "mm/day"
 
     if variable == "rsds" and ds[era5_variables[variable]].attrs["units"] == "J m**-2":
-        ds[era5_variables[variable]] = ds[era5_variables[variable]] / 3600
-        ds[era5_variables[variable]].attrs["units"] = "W m-2"
+        ds[era5_variables[variable]] = ds[era5_variables[variable]] / 1000000
+        ds[era5_variables[variable]].attrs["units"] = "MJ m**-2"
 
     ds = ds.drop("number")
     return ds.rename(

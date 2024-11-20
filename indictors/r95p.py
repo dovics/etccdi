@@ -28,7 +28,8 @@ def process_r95p(ds: xr.Dataset):
 
 
 def draw(df: pd.DataFrame, ax = None):
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    cmap = plt.get_cmap("Greens")
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
     plt.title("R95P")
 
 

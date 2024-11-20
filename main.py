@@ -6,30 +6,25 @@ from utils import (
     add_region_latlon
 )
 from matplotlib import pyplot as plt
-import cartopy.crs as ccrs
+from config import crs, use_cache
 from scipy.stats import linregress
 from plot import add_point_map
 
 indictor_list = [
-    "cdd",
-    "csdi",
-    "cwd",
-    "dtr",
-    "fd",
+    "pr",
+    "rsds",
+    "hur",
     "gdd",
-    "id",
+    
+    "cwd",
     "r10",
-    "r20",
     "r95p",
     "rx1day",
-    "rx5day",
-    "sdii",
-    "tn10p",
+    
     "tn90p",
-    "tnn",
-    "tx10p",
     "tx90p",
     "txx",
+    "fd",
 ]
 
 def import_indictor(indictor: str):
@@ -42,14 +37,14 @@ def import_indictor(indictor: str):
 def calculate_indictors(indictor_list: list):
     for indictor in indictor_list:
         target = get_result_data_path(indictor)
-        # if Path(target).exists(): 
-        #     print(f"{indictor} already exists")
-        #     continue
+        if use_cache and Path(target).exists(): 
+            print(f"{indictor} already exists")
+            continue
     
         module = import_indictor(indictor)
         if hasattr(module, "calculate"):
             try:
-                module.calculate(process=False)
+                module.calculate(process=True)
                 print(f"{indictor} calculate success")
             except Exception as e:
                 print(f"Error executing {indictor}: {e}")
@@ -110,7 +105,7 @@ def plot(indictor_list: list):
     i = 0
     for indictor in indictor_list:
         module = import_indictor(indictor)
-        ax = fig.add_subplot(4, 5, i+1, projection=ccrs.PlateCarree())
+        ax = fig.add_subplot(3, 4, i+1, projection=crs)
         module.draw(df, ax)
         add_point_map(slope, indictor, ax)
 
@@ -122,9 +117,9 @@ def plot(indictor_list: list):
 
 
 if __name__ == "__main__":
-    # calculate_indictors(indictor_list)
-    # df = merge_post_process_indictors(indictor_list)
-    # df = merge_indictors(indictor_list)
-    # df.groupby(["lat", "lon"]).mean().to_csv(get_result_data_path("combined_mean"))
+    calculate_indictors(indictor_list)
+    df = merge_post_process_indictors(indictor_list)
+    df = merge_indictors(indictor_list)
+    df.groupby(["lat", "lon"]).mean().to_csv(get_result_data_path("combined_mean"))
     
     plot(indictor_list)

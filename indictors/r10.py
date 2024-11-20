@@ -20,7 +20,8 @@ def process_r10(ds:xr.Dataset):
     return result.sum(dim="time")
     
 def draw(df: pd.DataFrame, ax = None):
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
+    cmap = plt.get_cmap("Greens")
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
     plt.title(' R10')
     
 def calculate(process: bool = True):
