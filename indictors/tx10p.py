@@ -10,9 +10,11 @@ from utils import (
     merge_intermediate_post_process,
     range_era5_data_period,
     mean_by_region,
-    merge_intermediate
+    merge_intermediate,
 )
 from plot import draw_latlon_map
+from config import tas_colormap
+
 base_ds = merge_base_years_period("tasmax", full_year=False)
 t10 = percentile_doy(base_ds["tasmax"], per=10, window=5).sel(percentiles=10)
 
@@ -25,11 +27,9 @@ def process_tx10p(ds: xr.Dataset):
     return result.sum(dim="time")
 
 
-def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("OrRd")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title("TX10P")
-
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
+    plt.title("TX10P", loc="right")
 
 
 def calculate(process: bool = True):

@@ -3,16 +3,15 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import xclim
 from xclim.indicators.atmos import maximum_consecutive_dry_days
-from pathlib import Path
 from utils import (
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
     reindex_ds_to_all_year,
     merge_intermediate_post_process,
-    merge_intermediate
+    merge_intermediate,
 )
-
+from config import pr_colormap
 from plot import draw_latlon_map
 
 xclim.set_options(data_validation="log")
@@ -28,11 +27,9 @@ def process_cdd(ds: xr.Dataset):
     return result
 
 
-def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("OrRd")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title("CDD")
-    
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
+    plt.title("CDD", loc="right")
 
 
 def calculate(process: bool = True):
@@ -41,6 +38,6 @@ def calculate(process: bool = True):
 
     df_post_process = merge_intermediate_post_process(indicator_name)
     df_post_process.to_csv(get_result_data_path(indicator_name + "_post_process"))
-    
+
     df = merge_intermediate(indicator_name)
     df.to_csv(get_result_data_path(indicator_name))

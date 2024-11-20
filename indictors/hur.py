@@ -12,7 +12,7 @@ from utils import (
     merge_intermediate,
 )
 from plot import draw_latlon_map
-
+from config import tas_colormap
 from xclim.indicators.atmos import relative_humidity_from_dewpoint
 
 
@@ -28,10 +28,9 @@ def process_hur(ds: xr.Dataset) -> xr.DataArray:
     return result
 
 
-def draw(df: pd.DataFrame, ax = None):
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax)
-    plt.title("HUR")
-
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
+    plt.title("HUR", loc="right")
 
 
 def calculate(process: bool = True):

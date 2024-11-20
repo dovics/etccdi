@@ -12,7 +12,7 @@ from utils import (
     merge_intermediate,
 )
 from plot import draw_latlon_map
-
+from config import tas_colormap
 
 # FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0oC.
 indicator_name = "fd"
@@ -24,11 +24,9 @@ def process_fd(ds: xr.Dataset) -> xr.DataArray:
     return fd
 
 
-def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("OrRd")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title("FD")
-
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
+    plt.title("FD", loc="right")
 
 
 def calculate(process: bool = True):

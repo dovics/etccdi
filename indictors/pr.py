@@ -12,7 +12,7 @@ from utils import (
     merge_intermediate,
 )
 from plot import draw_latlon_map
-
+from config import pr_colormap
 
 # PR, Precipitation: Annual total precipitation.
 indicator_name = "pr"
@@ -24,11 +24,9 @@ def process_pr(ds: xr.Dataset) -> xr.DataArray:
     return pr
 
 
-def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("Greens")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title("PR")
-
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
+    plt.title("PR", loc="right")
 
 
 def calculate(process: bool = True):

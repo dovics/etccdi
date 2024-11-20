@@ -1,4 +1,6 @@
 import cartopy.crs as ccrs
+import os
+import matplotlib.pyplot as plt
 
 country_list = [
     "伊宁县",
@@ -55,15 +57,19 @@ end_year = 2023
 base_start_year = 1961
 base_end_year = 1990
 
-# cds_api_key = os.environ.get("CDS_API_KEY")
-# cds_api_key = "11a309e4-98cb-4f04-a1c9-215cf56c2c1b" # wang
-cds_api_key = "d8d390f1-abf3-46f7-b3c0-6bfa8b5e1f4c"  # fang
+cds_api_key = os.environ.get("CDS_API_KEY")
+
 use_cache = True
 
 download_era5 = False
 use_download_cache = use_cache
 
-# crs = ccrs.UTM(zone=48, southern_hemisphere=False)
-# crs = ccrs.PlateCarree()
-# crs = ccrs.Mercator()
-crs = ccrs.Robinson()
+
+target_crs = ccrs.AlbersEqualArea(
+    central_longitude=105, central_latitude=35, standard_parallels=(25, 47)
+)
+
+gdf_crs = ccrs.PlateCarree()
+
+tas_colormap = plt.get_cmap("OrRd")
+pr_colormap = plt.get_cmap("Blues")

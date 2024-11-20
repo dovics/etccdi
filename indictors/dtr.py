@@ -8,10 +8,11 @@ from utils import (
     range_era5_data_period,
     mean_by_region,
     merge_intermediate_post_process,
-    merge_intermediate
+    merge_intermediate,
 )
 
 from plot import draw_latlon_map
+from config import tas_colormap
 
 indicator_name = "dtr"
 
@@ -23,10 +24,9 @@ def process_dtr(ds: xr.Dataset) -> xr.DataArray:
     return dtr.sum(dim="time")
 
 
-def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("OrRd")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title("DTR")
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
+    plt.title("DTR", loc="right")
 
 
 def calculate(process: bool = True):

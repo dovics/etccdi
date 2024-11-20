@@ -12,23 +12,20 @@ from utils import (
     merge_intermediate,
 )
 from plot import draw_latlon_map
-
-
+from config import tas_colormap
 
 indicator_name = "rsds"
 
 
 def process_rsds(ds: xr.Dataset) -> xr.DataArray:
-    rsds = ds["rsds"].mean(dim="time")
+    rsds = ds["rsds"].sum(dim="time")
     rsds.name = indicator_name
     return rsds
 
 
-def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("OrRd")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title("RSDS")
-
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
+    ax.set_title("RSDS", loc="right")
 
 
 def calculate(process: bool = True):

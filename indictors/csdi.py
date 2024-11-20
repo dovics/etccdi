@@ -15,6 +15,8 @@ from utils import (
     merge_intermediate_post_process,
 )
 from plot import draw_latlon_map
+from config import tas_colormap
+
 indicator_name = "csdi"
 default_value = 999
 
@@ -32,11 +34,10 @@ def process_csdi(ds: xr.Dataset):
     return result
 
 
-def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("OrRd")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title("CSDI")
-    
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
+    plt.title("CSDI", loc="right")
+
 
 def calculate(process: bool = True):
     if process:

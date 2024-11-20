@@ -1,4 +1,4 @@
-from matplotlib import pyplot as plt 
+from matplotlib import pyplot as plt
 import xarray as xr
 import pandas as pd
 from pathlib import Path
@@ -7,29 +7,32 @@ from utils import (
     range_era5_data_period,
     mean_by_region,
     merge_intermediate_post_process,
-    merge_intermediate
+    merge_intermediate,
 )
 from plot import draw_latlon_map
+from config import tas_colormap
 
 # ID, Number of icing days: Annual count of days when TX (daily maximum temperature) < 0oC.
 indicator_name = "id"
+
+
 def process_id(ds: xr.Dataset) -> xr.DataArray:
-    id = (ds['tasmax'] - 273.15 < 0).sum(dim='time')
+    id = (ds["tasmax"] - 273.15 < 0).sum(dim="time")
     id.name = indicator_name
     return id
 
-def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("OrRd")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title(' ID')
+
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
+    plt.title("ID", loc="right")
 
 
-def calculate(process: bool = True  ):
+def calculate(process: bool = True):
     if process:
-        range_era5_data_period("tasmax", process_id,mean_by_region)
+        range_era5_data_period("tasmax", process_id, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)
     df_post_process.to_csv(get_result_data_path(indicator_name + "_post_process"))
 
     df = merge_intermediate(indicator_name)
-    df.to_csv(get_result_data_path(indicator_name)) 
+    df.to_csv(get_result_data_path(indicator_name))

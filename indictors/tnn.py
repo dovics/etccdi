@@ -7,9 +7,10 @@ from utils import (
     get_result_data_path,
     range_era5_data_period,
     mean_by_region,
-    merge_intermediate
+    merge_intermediate,
 )
 from plot import draw_latlon_map
+from config import tas_colormap
 
 indicator_name = "tnn"
 
@@ -21,11 +22,9 @@ def process_tnn(ds: xr.Dataset):
     return result.min(dim="time")
 
 
-def draw(df: pd.DataFrame, ax = None):
-    cmap = plt.get_cmap("OrRd")
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=cmap)
-    plt.title("TNN")
-
+def draw(df: pd.DataFrame, ax=None):
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
+    plt.title("TNN", loc="right")
 
 
 def calculate(process: bool = True):
