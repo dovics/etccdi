@@ -16,6 +16,7 @@ from plot import draw_latlon_map
 
 xclim.set_options(data_validation="log")
 indicator_name = "cdd"
+unit = "d"
 default_value = 10
 
 
@@ -29,7 +30,6 @@ def process_cdd(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    plt.title("CDD", loc="right")
 
 
 def calculate(process: bool = True):

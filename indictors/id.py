@@ -14,7 +14,7 @@ from config import tas_colormap
 
 # ID, Number of icing days: Annual count of days when TX (daily maximum temperature) < 0oC.
 indicator_name = "id"
-
+unit = "d"
 
 def process_id(ds: xr.Dataset) -> xr.DataArray:
     id = (ds["tasmax"] - 273.15 < 0).sum(dim="time")
@@ -24,7 +24,6 @@ def process_id(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    plt.title("ID", loc="right")
 
 
 def calculate(process: bool = True):

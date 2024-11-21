@@ -32,7 +32,7 @@ default_value = 0
 # 12/31 -> 04/01
 
 default_value = 0
-
+unit = "mm \cdot d^{-1}"
 
 def process_sdii(ds: xr.Dataset):
     ds = reindex_ds_to_all_year(ds, default_value)
@@ -43,7 +43,6 @@ def process_sdii(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    plt.title("SDII", loc="right")
 
 
 def calculate(process: bool = True):

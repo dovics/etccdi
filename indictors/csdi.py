@@ -18,6 +18,7 @@ from plot import draw_latlon_map
 from config import tas_colormap
 
 indicator_name = "csdi"
+unit = "d"
 default_value = 999
 
 base_ds = merge_base_years_period(
@@ -36,7 +37,6 @@ def process_csdi(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    plt.title("CSDI", loc="right")
 
 
 def calculate(process: bool = True):

@@ -9,16 +9,16 @@ from utils import (
 from matplotlib import pyplot as plt
 from config import target_crs, use_cache
 from scipy.stats import linregress
-from plot import add_point_map
+from plot import add_point_map, add_number
 from common.outlier import process_outlier_grid_all
 
 from common.reshape import split_data_by_column
 
 indictor_list = [
-    "pr",
     "rsds",
     "hur",
     "gdd",
+    "pr",
     "cwd",
     "r10",
     "r95p",
@@ -118,21 +118,26 @@ def plot(indictor_list: list):
         module = import_indictor(indictor)
         ax = fig.add_subplot(4, 3, i + 1, projection=target_crs)
         module.draw(df, ax)
-        add_point_map(slope, indictor, ax)
 
+        if hasattr(module, "unit"):
+            add_point_map(slope, indictor, ax, unit=module.unit + "\cdot 10a^{-1}")
+        else:
+            add_point_map(slope, indictor, ax)
+            
+        add_number(ax, f"({chr(97 + i)})")
         i += 1
 
     plt.savefig("result_data/plot.png", dpi=300)
 
 
 if __name__ == "__main__":
-    calculate_indictors(indictor_list)
-    df = merge_post_process_indictors(indictor_list)
-    df = process_outlier_grid_all(df)
-    split_data_by_column(df, get_outlier_result_data_path())
-    df = merge_indictors(indictor_list)
-    df.groupby(["lat", "lon"]).mean().to_csv(
-        get_origin_result_data_path("all_mean"), float_format="%.2f"
-    )
+    # calculate_indictors(indictor_list)
+    # df = merge_post_process_indictors(indictor_list)
+    # df = process_outlier_grid_all(df)
+    # split_data_by_column(df, get_outlier_result_data_path())
+    # df = merge_indictors(indictor_list)
+    # df.groupby(["lat", "lon"]).mean().to_csv(
+    #     get_origin_result_data_path("all_mean"), float_format="%.2f"
+    # )
 
     plot(indictor_list)

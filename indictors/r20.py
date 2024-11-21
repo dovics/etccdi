@@ -13,7 +13,7 @@ from plot import draw_latlon_map
 from config import pr_colormap
 
 indicator_name = "r20"
-
+unit = "d"
 
 def process_r20(ds: xr.Dataset):
     result = wetdays(ds["pr"], thresh="20.0 mm/day")
@@ -23,7 +23,6 @@ def process_r20(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    plt.title("R20", loc="right")
 
 
 def calculate(process: bool = True):

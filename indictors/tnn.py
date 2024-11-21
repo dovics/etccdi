@@ -13,7 +13,7 @@ from plot import draw_latlon_map
 from config import tas_colormap
 
 indicator_name = "tnn"
-
+unit = "°C"
 
 def process_tnn(ds: xr.Dataset):
     ds["tasmin"].values -= 273.15
@@ -24,7 +24,6 @@ def process_tnn(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    plt.title("TNN", loc="right")
 
 
 def calculate(process: bool = True):

@@ -19,7 +19,7 @@ base_ds = merge_base_years_period("tasmax", full_year=False)
 t10 = percentile_doy(base_ds["tasmax"], per=10, window=5).sel(percentiles=10)
 
 indicator_name = "tx10p"
-
+unit = "d"
 
 def process_tx10p(ds: xr.Dataset):
     result = tx10p(ds["tasmax"], t10, freq="YS")
@@ -29,7 +29,6 @@ def process_tx10p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    plt.title("TX10P", loc="right")
 
 
 def calculate(process: bool = True):

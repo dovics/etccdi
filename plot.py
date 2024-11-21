@@ -159,7 +159,7 @@ def draw_latlon_map(
     plt.colorbar(contour, ax=ax, pad=0.05, fraction=0.03)
 
 
-def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None):
+def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None, unit=None):
     symbols = {
         (True, False): "△",
         (True, True): "▲",
@@ -240,13 +240,19 @@ def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None):
         ),
     ]
 
+    if unit is not None:
+        title = f"Climate tendency rate \n( ${unit}$ )"
+    else:
+        title = "Climate tendency rate"
+
     ax.legend(
         handles=handles,
         loc="upper left",
         fontsize="small",
-        title="Climate tendency rate \n($mm\cdot d^{-1} \cdot 10a^{-1}$)",
+        title=title,
         frameon=False,
     )
+
 
 
 def add_scaler(ax: plt.Axes, length: float, location=(0.075, 0.05), linewidth=3):
@@ -266,9 +272,21 @@ def add_scaler(ax: plt.Axes, length: float, location=(0.075, 0.05), linewidth=3)
         verticalalignment="bottom",
     )
 
+def add_number(ax: plt.Axes, string: str, location=(0.9, 0.9)):
+    minx, maxx = ax.get_xlim()
+    miny, maxy = ax.get_ylim()
+    ylen = maxy - miny
+    xlen = maxx - minx
+
+    ax.text(
+        x=minx + xlen * location[0],
+        y=miny + ylen * location[1],
+        s=string,
+        fontsize="xx-large",
+    )
 
 def draw_north_arrow(
-    ax, labelsize=12, location=(0.9, 0.8), width=0.05, height=0.1, pad=0.02
+    ax, labelsize=12, location=(0.9, 0.1), width=0.05, height=0.1, pad=0.02
 ):
     loc_x, loc_y = location
     minx, maxx = ax.get_xlim()

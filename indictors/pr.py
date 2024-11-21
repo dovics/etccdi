@@ -16,7 +16,7 @@ from config import pr_colormap
 
 # PR, Precipitation: Annual total precipitation.
 indicator_name = "pr"
-
+unit = "mm \cdot d^{-1}"
 
 def process_pr(ds: xr.Dataset) -> xr.DataArray:
     pr = ds["pr"].sum(dim="time")
@@ -26,7 +26,6 @@ def process_pr(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    plt.title("PR", loc="right")
 
 
 def calculate(process: bool = True):

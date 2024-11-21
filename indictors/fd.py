@@ -16,7 +16,7 @@ from config import tas_colormap
 
 # FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0oC.
 indicator_name = "fd"
-
+unit = "d"
 
 def process_fd(ds: xr.Dataset) -> xr.DataArray:
     fd = (ds["tasmin"] - 273.15 < 0).sum(dim="time")
@@ -26,7 +26,6 @@ def process_fd(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    plt.title("FD", loc="right")
 
 
 def calculate(process: bool = True):

@@ -14,7 +14,7 @@ from plot import draw_latlon_map
 from config import pr_colormap
 
 indicator_name = "rx1day"
-
+unit = "mm"
 
 def process_rx1day(ds: xr.Dataset):
     result = max_1day_precipitation_amount(ds["pr"])
@@ -24,7 +24,6 @@ def process_rx1day(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    plt.title("RX1DAY", loc="right")
 
 
 def calculate(process: bool = True):

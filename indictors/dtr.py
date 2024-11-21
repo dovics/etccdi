@@ -15,7 +15,7 @@ from plot import draw_latlon_map
 from config import tas_colormap
 
 indicator_name = "dtr"
-
+unit = "°C"
 
 def process_dtr(ds: xr.Dataset) -> xr.DataArray:
     ds = ds.sortby("time")
@@ -26,7 +26,6 @@ def process_dtr(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    plt.title("DTR", loc="right")
 
 
 def calculate(process: bool = True):
