@@ -178,14 +178,14 @@ def merge_base_years_period(
     return xr.concat(datesets, dim="time", coords="minimal")
 
 
-def get_result_data_path(variable: str):
+def get_origin_result_data_path(variable: str):
     if Path(result_data_dir).exists() == False:
         Path(result_data_dir).mkdir()
     return f"{result_data_dir}/{variable}_era5.csv"
 
 
 def get_result_data(variable: str, year: str = None):
-    df = pd.read_csv(get_result_data_path(variable))
+    df = pd.read_csv(get_origin_result_data_path(variable))
     if year is None:
         return df
 
@@ -246,7 +246,6 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
             era5_variables[variable]: variable,
         }
     )
-
 
 
 def max_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
@@ -336,12 +335,14 @@ def max_by_region(da: xr.DataArray) -> pd.DataFrame:
 
     return pd.concat(df_list, ignore_index=True)
 
+
 def generate_region_map():
     region_map = {}
     for gdf in get_gdf_list():
         for _, region in gdf.iterrows():
             region_map[region["name"]] = region.geometry
     return region_map
+
 
 def add_region_latlon(df: pd.DataFrame):
     df = df.reset_index()
@@ -350,11 +351,13 @@ def add_region_latlon(df: pd.DataFrame):
     df["lon"] = df["name"].map(region_map).apply(lambda x: x.centroid.x)
     return df
 
+
 def find_region_by_name(name: str) -> gpd.GeoDataFrame:
     for gdf in get_gdf_list():
         for _, region in gdf.iterrows():
             if region["name"] == name:
                 return region
+
 
 def reindex_ds_to_all_year(ds: xr.Dataset, default_value, full_year=True):
     times = ds["time"].dt.floor("D").values
@@ -399,3 +402,21 @@ def merge_intermediate(variable_name: str):
     df.to_csv(get_intermediate_data_path(variable_name))
     df.set_index(["year", "lat", "lon"], inplace=True)
     return df
+
+
+def get_origin_result_data_path(variable: str = None):
+    if Path(result_data_dir + "/origin").exists() == False:
+        Path(result_data_dir + "/origin").mkdir()
+    if variable is None:
+        return f"{result_data_dir}/origin"
+
+    return f"{result_data_dir}/origin/{variable}.csv"
+
+
+def get_outlier_result_data_path(variable: str = None):
+    if Path(result_data_dir + "/outlier").exists() == False:
+        Path(result_data_dir + "/outlier").mkdir()
+
+    if variable is None:
+        return f"{result_data_dir}/outlier"
+    return f"{result_data_dir}/outlier/{variable}.csv"

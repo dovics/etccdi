@@ -3,7 +3,7 @@ from utils import (
     range_era5_data,
     save_to_zarr,
     get_cf_daily_date_path,
-    get_result_data_path,
+    get_origin_result_data_path,
 )
 import xarray as xr
 from xclim.indicators.atmos import relative_humidity_from_dewpoint

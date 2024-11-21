@@ -73,3 +73,5 @@ gdf_crs = ccrs.PlateCarree()
 
 tas_colormap = plt.get_cmap("OrRd")
 pr_colormap = plt.get_cmap("Blues")
+
+max_outlier = 5

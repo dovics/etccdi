@@ -1,12 +1,18 @@
 import pandas as pd
 from pathlib import Path
 import importlib.util
-from utils import get_result_data_path, add_region_latlon
+from utils import (
+    get_origin_result_data_path,
+    add_region_latlon,
+    get_outlier_result_data_path,
+)
 from matplotlib import pyplot as plt
 from config import target_crs, use_cache
 from scipy.stats import linregress
 from plot import add_point_map
-import cartopy.crs as ccrs
+from common.outlier import process_outlier_grid_all
+
+from common.reshape import split_data_by_column
 
 indictor_list = [
     "pr",
@@ -34,15 +40,15 @@ def import_indictor(indictor: str):
 
 def calculate_indictors(indictor_list: list):
     for indictor in indictor_list:
-        target = get_result_data_path(indictor)
-        # if use_cache and Path(target).exists():
-        #     print(f"{indictor} already exists")
-        #     continue
+        target = get_origin_result_data_path(indictor)
+        if use_cache and Path(target).exists():
+            print(f"{indictor} already exists")
+            continue
 
         module = import_indictor(indictor)
         if hasattr(module, "calculate"):
             try:
-                module.calculate(process=False)
+                module.calculate()
                 print(f"{indictor} calculate success")
             except Exception as e:
                 print(f"Error executing {indictor}: {e}")
@@ -53,7 +59,8 @@ def calculate_indictors(indictor_list: list):
 def merge_post_process_indictors(indictor_list: list):
     df_list = [
         pd.read_csv(
-            get_result_data_path(indictor + "_post_process"), index_col=["name", "year"]
+            get_origin_result_data_path(indictor + "_post_process"),
+            index_col=["name", "year"],
         ).rename(columns={"value": indictor})
         for indictor in indictor_list
     ]
@@ -61,22 +68,22 @@ def merge_post_process_indictors(indictor_list: list):
     combined_df = pd.concat(df_list, axis=1)
     combined_df = combined_df[combined_df.index.get_level_values("year") >= 1989]
     combined_df.to_csv(
-        get_result_data_path("combined_post_process"), float_format="%.2f"
+        get_origin_result_data_path("combined_post_process"), float_format="%.2f"
     )
     return combined_df
 
 
 def merge_indictors(indictor_list: list):
     df_list = [
-        pd.read_csv(get_result_data_path(indictor), index_col=["lat", "lon", "year"])[
-            indictor
-        ]
+        pd.read_csv(
+            get_origin_result_data_path(indictor), index_col=["lat", "lon", "year"]
+        )[indictor]
         for indictor in indictor_list
     ]
 
     combined_df = pd.concat(df_list, axis=1)
     combined_df = combined_df[combined_df.index.get_level_values("year") >= 1989]
-    combined_df.to_csv(get_result_data_path("combined"), float_format="%.2f")
+    combined_df.to_csv(get_origin_result_data_path("all"), float_format="%.2f")
     return combined_df
 
 
@@ -99,13 +106,13 @@ def calculate_slope(df: pd.DataFrame):
 
 
 def plot(indictor_list: list):
-    point_df = pd.read_csv(get_result_data_path("combined_post_process"))
+    point_df = pd.read_csv(get_outlier_result_data_path("all"))
     slope = calculate_slope(point_df)
     slope = add_region_latlon(slope)
 
-    csv_path = get_result_data_path("combined_mean")
+    csv_path = get_origin_result_data_path("all_mean")
     df = pd.read_csv(csv_path)
-    fig = plt.figure(figsize=(24, 24)) 
+    fig = plt.figure(figsize=(24, 24))
     i = 0
     for indictor in indictor_list:
         module = import_indictor(indictor)
@@ -116,13 +123,16 @@ def plot(indictor_list: list):
         i += 1
 
     plt.savefig("result_data/plot.png", dpi=300)
-   
 
 
 if __name__ == "__main__":
-    # calculate_indictors(indictor_list)
-    # df = merge_post_process_indictors(indictor_list)
-    # df = merge_indictors(indictor_list)
-    # df.groupby(["lat", "lon"]).mean().to_csv(get_result_data_path("combined_mean"))
+    calculate_indictors(indictor_list)
+    df = merge_post_process_indictors(indictor_list)
+    df = process_outlier_grid_all(df)
+    split_data_by_column(df, get_outlier_result_data_path())
+    df = merge_indictors(indictor_list)
+    df.groupby(["lat", "lon"]).mean().to_csv(
+        get_origin_result_data_path("all_mean"), float_format="%.2f"
+    )
 
     plot(indictor_list)
