@@ -159,7 +159,7 @@ def draw_latlon_map(
     plt.colorbar(contour, ax=ax, pad=0.05, fraction=0.03)
 
 
-def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None, unit=None):
+def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None, unit=None, legend_location=None):
     symbols = {
         (True, False): "△",
         (True, True): "▲",
@@ -245,15 +245,40 @@ def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None, unit=Non
     else:
         title = "Climate tendency rate"
 
+    if legend_location is None:
+        ax.legend(
+            handles=handles,
+            loc="upper left",
+            fontsize="small",
+            title=title,
+            frameon=False,
+        )
+        
+        return
+    
     ax.legend(
         handles=handles,
-        loc="upper left",
+        loc="lower left",
+        bbox_to_anchor=legend_location,
         fontsize="small",
         title=title,
         frameon=False,
     )
 
-
+def add_title(ax: plt.Axes, title: str, location=(0.5, 1.05)):
+    minx, maxx = ax.get_xlim()
+    miny, maxy = ax.get_ylim()
+    ylen = maxy - miny
+    xlen = maxx - minx
+    ax.text(
+        x=minx + xlen * location[0],
+        y=miny + ylen * location[1],
+        s=title,
+        ha="left",
+        va="center",
+        fontsize="large",
+        fontweight="bold",
+    )
 
 def add_scaler(ax: plt.Axes, length: float, location=(0.075, 0.05), linewidth=3):
     distance = length * 1000

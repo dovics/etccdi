@@ -9,7 +9,7 @@ from utils import (
 from matplotlib import pyplot as plt
 from config import target_crs, use_cache
 from scipy.stats import linregress
-from plot import add_point_map, add_number
+from plot import add_point_map, add_number, add_title
 from common.outlier import process_outlier_grid_all
 
 from common.reshape import split_data_by_column
@@ -120,10 +120,10 @@ def plot(indictor_list: list):
         module.draw(df, ax)
 
         if hasattr(module, "unit"):
-            add_point_map(slope, indictor, ax, unit=module.unit + "\cdot 10a^{-1}")
+            add_point_map(slope, indictor, ax, unit=module.unit + "\cdot 10a^{-1}", legend_location=(0, 0.625))
         else:
-            add_point_map(slope, indictor, ax)
-            
+            add_point_map(slope, indictor, ax, legend_location=(0, 0.7))
+        add_title(ax, indictor.upper(), location=(0.025, 0.95))
         add_number(ax, f"({chr(97 + i)})")
         i += 1
 
