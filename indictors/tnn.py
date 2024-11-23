@@ -1,5 +1,4 @@
 import xarray as xr
-from matplotlib import pyplot as plt
 from xclim.indices import tn_min
 import pandas as pd
 from utils import (
@@ -9,7 +8,7 @@ from utils import (
     mean_by_region,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
 indicator_name = "tnn"
@@ -24,7 +23,7 @@ def process_tnn(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-
+    add_title(ax, f"TNN (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

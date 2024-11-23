@@ -1,8 +1,6 @@
 import xarray as xr
-from matplotlib import pyplot as plt
 import pandas as pd
 from xclim.indicators.atmos import daily_pr_intensity
-from pathlib import Path
 from utils import (
     get_origin_result_data_path,
     range_era5_data_period,
@@ -11,7 +9,7 @@ from utils import (
     merge_intermediate_post_process,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import pr_colormap
 
 indicator_name = "sdii"
@@ -43,7 +41,7 @@ def process_sdii(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-
+    add_title(ax, f"SDII (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

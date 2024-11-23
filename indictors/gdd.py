@@ -1,9 +1,6 @@
 import xarray as xr
-from matplotlib import pyplot as plt
 import pandas as pd
 from xclim.indices import growing_degree_days
-
-from pathlib import Path
 from utils import (
     get_origin_result_data_path,
     range_era5_data_period,
@@ -12,7 +9,7 @@ from utils import (
     merge_intermediate,
 )
 
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
 indicator_name = "gdd"
@@ -26,7 +23,7 @@ def process_gdd(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-
+    add_title(ax, f"GDD (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

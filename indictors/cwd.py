@@ -12,7 +12,7 @@ from utils import (
     merge_intermediate,
 )
 
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import pr_colormap
 
 default_value = 0
@@ -28,7 +28,7 @@ def process_cwd(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-
+    add_title(ax, f"CWD (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

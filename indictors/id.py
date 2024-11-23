@@ -9,7 +9,7 @@ from utils import (
     merge_intermediate_post_process,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
 # ID, Number of icing days: Annual count of days when TX (daily maximum temperature) < 0oC.
@@ -24,7 +24,7 @@ def process_id(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-
+    add_title(ax, f"ID (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

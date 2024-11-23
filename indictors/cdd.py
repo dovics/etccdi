@@ -12,7 +12,7 @@ from utils import (
     merge_intermediate,
 )
 from config import pr_colormap
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 
 xclim.set_options(data_validation="log")
 indicator_name = "cdd"
@@ -30,7 +30,7 @@ def process_cdd(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-
+    add_title(ax, f"CDD (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

@@ -1,9 +1,5 @@
-from matplotlib import pyplot as plt
 import xarray as xr
-import numpy as np
 import pandas as pd
-from pathlib import Path
-from xclim.indices import frost_days
 from utils import (
     merge_intermediate_post_process,
     range_era5_data_period,
@@ -11,7 +7,7 @@ from utils import (
     mean_by_region,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import pr_colormap
 
 # PR, Precipitation: Annual total precipitation.
@@ -26,7 +22,7 @@ def process_pr(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-
+    add_title(ax, f"PR (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

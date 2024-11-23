@@ -14,7 +14,7 @@ from utils import (
     reindex_ds_to_all_year,
     merge_intermediate_post_process,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
 indicator_name = "csdi"
@@ -37,7 +37,7 @@ def process_csdi(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-
+    add_title(ax, f"CSDI (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

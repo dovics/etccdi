@@ -1,9 +1,8 @@
-from matplotlib import pyplot as plt
+
 import xarray as xr
-import numpy as np
+
 import pandas as pd
-from pathlib import Path
-from xclim.indices import frost_days
+
 from utils import (
     merge_intermediate_post_process,
     range_era5_data_period,
@@ -11,7 +10,7 @@ from utils import (
     mean_by_region,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
 # FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0oC.
@@ -26,7 +25,7 @@ def process_fd(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-
+    add_title(ax, f"FD (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

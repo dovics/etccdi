@@ -2,7 +2,6 @@ from matplotlib import pyplot as plt
 import xarray as xr
 import pandas as pd
 from xclim.indices import daily_temperature_range
-from pathlib import Path
 from utils import (
     get_origin_result_data_path,
     range_era5_data_period,
@@ -11,7 +10,7 @@ from utils import (
     merge_intermediate,
 )
 
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
 indicator_name = "dtr"
@@ -26,8 +25,8 @@ def process_dtr(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-
-
+    add_title(ax, f"DTR (${unit}$)")
+    
 def calculate(process: bool = True):
     if process:
         range_era5_data_period(["tasmax", "tasmin"], process_dtr, mean_by_region)

@@ -265,7 +265,7 @@ def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None, unit=Non
         frameon=False,
     )
 
-def add_title(ax: plt.Axes, title: str, location=(0.5, 1.05)):
+def add_title(ax: plt.Axes, title: str, location=(0.025, 0.95)):
     minx, maxx = ax.get_xlim()
     miny, maxy = ax.get_ylim()
     ylen = maxy - miny

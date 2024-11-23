@@ -1,5 +1,4 @@
 import xarray as xr
-from matplotlib import pyplot as plt
 from xclim.core.calendar import percentile_doy
 import pandas as pd
 from xclim.indices import tx90p
@@ -11,7 +10,7 @@ from utils import (
     mean_by_region,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
 # tasmax
@@ -29,7 +28,7 @@ def process_tx90p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-
+    add_title(ax, f"TX90p (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

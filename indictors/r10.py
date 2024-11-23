@@ -1,8 +1,5 @@
 import xarray as xr
-from matplotlib import pyplot as plt
-from xclim.core.calendar import percentile_doy
 import pandas as pd
-import numpy as np
 from xclim.indices import wetdays
 from utils import (
     merge_intermediate_post_process,
@@ -11,7 +8,7 @@ from utils import (
     mean_by_region,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import pr_colormap
 
 indicator_name = "r10"
@@ -25,7 +22,7 @@ def process_r10(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-
+    add_title(ax, f"R10 (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

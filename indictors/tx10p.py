@@ -1,9 +1,7 @@
 import xarray as xr
-from matplotlib import pyplot as plt
 from xclim.core.calendar import percentile_doy
 import pandas as pd
 from xclim.indices import tx10p
-from pathlib import Path
 from utils import (
     merge_base_years_period,
     get_origin_result_data_path,
@@ -12,7 +10,7 @@ from utils import (
     mean_by_region,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
 base_ds = merge_base_years_period("tasmax", full_year=False)
@@ -29,7 +27,7 @@ def process_tx10p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-
+    add_title(ax, f"TX10p (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

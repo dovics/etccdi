@@ -1,11 +1,9 @@
 import xarray as xr
-from matplotlib import pyplot as plt
 from xclim.core.calendar import percentile_doy
 import pandas as pd
 
 from xclim.indices import days_over_precip_thresh
 
-from pathlib import Path
 from utils import (
     get_origin_result_data_path,
     merge_base_years_period,
@@ -14,7 +12,7 @@ from utils import (
     merge_intermediate_post_process,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import pr_colormap
 
 base_ds = merge_base_years_period("pr", full_year=False)
@@ -30,7 +28,7 @@ def process_r95p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-
+    add_title(ax, f"R95p (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

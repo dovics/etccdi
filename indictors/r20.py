@@ -9,7 +9,7 @@ from utils import (
     mean_by_region,
     merge_intermediate,
 )
-from plot import draw_latlon_map
+from plot import draw_latlon_map, add_title
 from config import pr_colormap
 
 indicator_name = "r20"
@@ -23,7 +23,7 @@ def process_r20(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-
+    add_title(ax, f"R20 (${unit}$)")
 
 def calculate(process: bool = True):
     if process:
