@@ -186,14 +186,14 @@ def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None, unit=Non
             # )
 
             # low
-            value = abs(row[variable])
+            value = row[variable]
             if value >= 10:
                 formatted_value = f"{value:.1f}"
             else:
                 formatted_value = f"{value:.2f}"
             ax.annotate(
                 formatted_value,
-                xy=(row["lon"] - 0.2, row["lat"] - 0.45),
+                xy=(row["lon"] - 0.1, row["lat"] - 0.4),
                 transform=gdf_crs,
                 fontsize="xx-small",
             )
