@@ -12,6 +12,7 @@ from matplotlib.path import Path
 from utils import get_gdf_list, find_region_by_name
 from config import country_list, target_crs, gdf_crs
 from cartopy.mpl.patch import geos_to_path
+from cartopy.feature import ShapelyFeature
 
 province_full_geojson = "static/xinjiang_full.json"
 province_border_geojson = "static/xinjiang.json"
@@ -21,7 +22,7 @@ def draw_border(ax, gdf=None):
     if gdf is None:
         gdf = gpd.read_file(province_border_geojson)
     provinces = cfeat.ShapelyFeature(
-        gdf.geometry, gdf_crs, edgecolor="k", alpha=0.7, facecolor="none"
+        gdf.geometry, gdf_crs, edgecolor="black", alpha=1, facecolor="none"
     )
 
     ax.add_feature(provinces, linewidth=1)
@@ -145,7 +146,7 @@ def draw_latlon_map(
     ax.set_extent([minx + 1, maxx - 0.5, miny + 2, maxy - 2], crs=gdf_crs)
     draw_border(ax, gdf=gdf)
     draw_north_arrow(ax)
-
+    draw_line(ax)
     contour = ax.contourf(LON, LAT, VALUE, levels=15, cmap=cmap, transform=gdf_crs)
 
     if clip:
@@ -159,7 +160,13 @@ def draw_latlon_map(
     plt.colorbar(contour, ax=ax, pad=0.05, fraction=0.03)
 
 
-def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None, unit=None, legend_location=None):
+def add_point_map(
+    df: pd.DataFrame,
+    variable: str,
+    ax: plt.Axes = None,
+    unit=None,
+    legend_location=None,
+):
     symbols = {
         (True, False): "△",
         (True, True): "▲",
@@ -253,9 +260,9 @@ def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None, unit=Non
             title=title,
             frameon=False,
         )
-        
+
         return
-    
+
     ax.legend(
         handles=handles,
         loc="lower left",
@@ -264,6 +271,7 @@ def add_point_map(df: pd.DataFrame, variable: str, ax: plt.Axes = None, unit=Non
         title=title,
         frameon=False,
     )
+
 
 def add_title(ax: plt.Axes, title: str, location=(0.025, 0.95)):
     minx, maxx = ax.get_xlim()
@@ -279,6 +287,7 @@ def add_title(ax: plt.Axes, title: str, location=(0.025, 0.95)):
         fontsize="large",
         fontweight="bold",
     )
+
 
 def add_scaler(ax: plt.Axes, length: float, location=(0.075, 0.05), linewidth=3):
     distance = length * 1000
@@ -297,6 +306,7 @@ def add_scaler(ax: plt.Axes, length: float, location=(0.075, 0.05), linewidth=3)
         verticalalignment="bottom",
     )
 
+
 def add_number(ax: plt.Axes, string: str, location=(0.9, 0.9)):
     minx, maxx = ax.get_xlim()
     miny, maxy = ax.get_ylim()
@@ -309,6 +319,7 @@ def add_number(ax: plt.Axes, string: str, location=(0.9, 0.9)):
         s=string,
         fontsize="xx-large",
     )
+
 
 def draw_north_arrow(
     ax, labelsize=12, location=(0.9, 0.1), width=0.05, height=0.1, pad=0.02
@@ -333,3 +344,20 @@ def draw_north_arrow(
         verticalalignment="bottom",
     )
     ax.add_patch(triangle)
+
+
+def draw_line(ax: plt.Axes):
+    line_file = "static/line/line1.shp"
+
+    gdf = gpd.read_file(line_file)
+    gdf["geometry"] = gdf["geometry"].to_crs("epsg:4326")
+    shape_feature = ShapelyFeature(
+        gdf.geometry,
+        ccrs.PlateCarree(),
+        linewidth=2,
+        alpha=0.7,
+        edgecolor="black",
+        facecolor="none",
+    )
+
+    ax.add_feature(shape_feature)
