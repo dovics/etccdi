@@ -5,7 +5,7 @@ import pandas as pd
 from utils import (
     get_origin_result_data_path,
     merge_intermediate_post_process,
-    range_era5_data_period,
+    range_data_period,
     mean_by_region,
     merge_intermediate,
 )
@@ -27,7 +27,7 @@ def draw(df: pd.DataFrame, ax=None):
 
 def calculate(process: bool = True):
     if process:
-        range_era5_data_period("pr", process_r20, mean_by_region)
+        range_data_period("pr", process_r20, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)
     df_post_process.to_csv(

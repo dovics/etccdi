@@ -45,6 +45,18 @@ country_list = [
     "于田县",
 ]
 
+cmip6_model_list = ["ACCESS-CM2", "BCC-CSM2-MR", "CanESM5"]
+cmip6_mode_list = ["ssp126", "ssp245", "ssp370", "ssp585"]
+downscaling_methods = {
+    "rsds": "gard",
+    "hur": "gard",
+    "tas": "bcsd",
+    "tasmax": "bcsd",
+    "tasmin": "bcsd",
+    "pr": "bcsd",
+}
+
+cmip6_data_dir = "../downscaling/result_data"
 era5_data_dir = "era5_data"
 result_data_dir = "result_data"
 intermediate_data_dir = "intermediate_data"
@@ -75,3 +87,6 @@ tas_colormap = plt.get_cmap("OrRd")
 pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
+
+mode="era5"
+base_mode="era5"

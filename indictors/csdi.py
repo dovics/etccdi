@@ -9,7 +9,7 @@ from utils import (
     merge_base_years_period,
     get_origin_result_data_path,
     merge_intermediate,
-    range_era5_data_period,
+    range_data_period,
     mean_by_region,
     reindex_ds_to_all_year,
     merge_intermediate_post_process,
@@ -41,7 +41,7 @@ def draw(df: pd.DataFrame, ax=None):
 
 def calculate(process: bool = True):
     if process:
-        range_era5_data_period("tasmin", process_csdi, mean_by_region)
+        range_data_period("tasmin", process_csdi, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)
     df_post_process.to_csv(

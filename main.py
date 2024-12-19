@@ -130,13 +130,13 @@ def plot(indictor_list: list):
 
 
 if __name__ == "__main__":
-    # calculate_indictors(indictor_list)
-    # df = merge_post_process_indictors(indictor_list)
-    # df = process_outlier_grid_all(df)
-    # split_data_by_column(df, get_outlier_result_data_path())
-    # df = merge_indictors(indictor_list)
-    # df.groupby(["lat", "lon"]).mean().to_csv(
-    #     get_origin_result_data_path("all_mean"), float_format="%.2f"
-    # )
+    calculate_indictors(indictor_list)
+    df = merge_post_process_indictors(indictor_list)
+    df = process_outlier_grid_all(df)
+    split_data_by_column(df, get_outlier_result_data_path())
+    df = merge_indictors(indictor_list)
+    df.groupby(["lat", "lon"]).mean().to_csv(
+        get_origin_result_data_path("all_mean"), float_format="%.2f"
+    )
 
     plot(indictor_list)

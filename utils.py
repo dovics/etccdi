@@ -21,6 +21,11 @@ from config import (
     period_start,
     period_end,
     use_cache,
+    cmip6_data_dir,
+    cmip6_model_list,
+    downscaling_methods,
+    mode,
+    base_mode
 )
 
 
@@ -40,35 +45,49 @@ def get_era5_data_path(variable: str, year: str):
 def load_era5_date(variable: str, year: str):
     return xr.open_dataset(get_era5_data_path(variable, year))
 
+def load_cmip6_data(variable: str, year: str, local_mode: str) -> xr.Dataset:
+    ds_list = []
+    for model in cmip6_model_list:
+        path = Path(cmip6_data_dir).joinpath(model).joinpath(f"{variable}_{local_mode}_{model}_{downscaling_methods[variable]}.zarr")
+        ds = xr.open_zarr(path)
+        ds = ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"))
+        ds_list.append(ds)
+    
+    concat_ds = xr.concat(ds_list, dim="model")
+    return concat_ds.mean(dim="model")
 
-def get_cf_daily_date_path(variable: str, year: str):
+
+def get_cf_daily_date_path(variable: str, year: str, local_mode: str):
     if Path(result_data_dir).exists() == False:
         Path(result_data_dir).mkdir()
-    return f"{intermediate_data_dir}/{variable}_cf_daily_{year}.zarr"
+    return f"{intermediate_data_dir}/{variable}_cf_daily_{year}_{local_mode}.zarr"
 
 
-def load_era5_daily_data(var_list: Union[list[str], str], year: str):
+def load_daily_data(var_list: Union[list[str], str], year: str, local_mode: str):
     if isinstance(var_list, str):
         var_list = [var_list]
 
     dataset_list = []
     for var in var_list:
-        dataset_list.append(load_era5_daily_data_single(var, year))
+        dataset_list.append(load_daily_data_single(var, year, local_mode=local_mode))
 
     ds = xr.merge(dataset_list)
     return ds
 
 
-def load_era5_daily_data_single(variable, year):
-    path = get_cf_daily_date_path(variable, year)
+def load_daily_data_single(variable, year, local_mode: str):
+    path = get_cf_daily_date_path(variable, year, local_mode=local_mode)
     if use_cache and Path(path).exists():
         print(f"Using cached {path}")
         return xr.open_zarr(path)
 
-    era5_ds = load_era5_date(variable, year)
-    ds = convert_era5_to_cf_daily(
-        era5_ds.sel(valid_time=slice(f"{year}-01-01", f"{year}-12-31")), variable
-    )
+    if local_mode == "era5":
+        era5_ds = load_era5_date(variable, year)
+        ds = convert_era5_to_cf_daily(
+            era5_ds.sel(valid_time=slice(f"{year}-01-01", f"{year}-12-31")), variable
+        )
+    else:
+        ds = load_cmip6_data(variable, year, local_mode=local_mode)
 
     save_to_zarr(ds, path)
     if ds[variable].isnull().any():
@@ -84,14 +103,14 @@ def save_to_zarr(ds: xr.Dataset, path: Path):
     zarr.consolidate_metadata(path)
 
 
-def range_era5_data(
+def range_data(
     var_list: Union[list[str], str], process: callable, postprocess: callable = None
 ):
     if isinstance(var_list, str):
         var_list = [var_list]
 
     for year in range(start_year, end_year + 1):
-        ds = process(load_era5_daily_data(var_list, str(year)))
+        ds = process(load_daily_data(var_list, str(year), mode=mode))
         if ds is None:
             continue
         ds.to_dataframe().to_csv(get_intermediate_data_path(ds.name, str(year)))
@@ -103,7 +122,7 @@ def range_era5_data(
             )
 
 
-def range_era5_data_period(
+def range_data_period(
     var_list: Union[list[str], str], process: callable, postprocess: callable = None
 ):
     if isinstance(var_list, str):
@@ -113,7 +132,7 @@ def range_era5_data_period(
         period_end, "%m-%d"
     ):
         for year in range(start_year, end_year + 1):
-            ds = process(load_era5_daily_data(var_list, str(year)))
+            ds = process(load_daily_data(var_list, str(year), local_mode=mode))
             ds.to_dataframe().to_csv(get_intermediate_data_path(ds.name, str(year)))
             if postprocess:
                 df = postprocess(ds)
@@ -124,8 +143,8 @@ def range_era5_data_period(
         return
 
     for year in range(start_year + 1, end_year + 1):
-        last_year_ds = load_era5_daily_data(var_list, str(year - 1))
-        this_year_ds = load_era5_daily_data(var_list, str(year))
+        last_year_ds = load_daily_data(var_list, str(year - 1), local_mode=mode)
+        this_year_ds = load_daily_data(var_list, str(year), local_mode=mode)
         merged_ds = xr.concat([last_year_ds, this_year_ds], dim="time")
         selected_ds = merged_ds.sel(
             time=slice(f"{year - 1}-{period_start}", f"{year}-{period_end}")
@@ -143,7 +162,7 @@ def range_era5_data_period(
 def merge_base_years(var_list: Union[list[str], str]) -> xr.Dataset:
     datesets = []
     for year in range(base_start_year, base_end_year + 1):
-        datesets.append(load_era5_daily_data(var_list, str(year)))
+        datesets.append(load_daily_data(var_list, str(year), local_mode=base_mode))
 
     return xr.concat(datesets, dim="time", coords="minimal")
 
@@ -156,8 +175,8 @@ def merge_base_years_period(
         period_end, "%m-%d"
     ):
         for year in range(base_start_year + 1, base_end_year + 1):
-            last_year_ds = load_era5_daily_data(var_list, str(year - 1))
-            this_year_ds = load_era5_daily_data(var_list, str(year))
+            last_year_ds = load_daily_data(var_list, str(year - 1), local_mode=base_mode)
+            this_year_ds = load_daily_data(var_list, str(year), local_mode=base_mode)
             merged_ds = xr.concat([last_year_ds, this_year_ds], dim="time")
             selected_ds = merged_ds.sel(
                 time=slice(f"{year - 1}-{period_start}", f"{year}-{period_end}")
@@ -170,7 +189,7 @@ def merge_base_years_period(
                 datesets.append(selected_ds)
     else:
         for year in range(base_start_year, base_end_year + 1):
-            ds = load_era5_daily_data(var_list, str(year))
+            ds = load_daily_data(var_list, str(year), local_mode=base_mode)
             selected_ds = ds.sel(
                 time=slice(f"{year}-{period_start}", f"{year}-{period_end}")
             )
@@ -181,7 +200,7 @@ def merge_base_years_period(
 def get_origin_result_data_path(variable: str):
     if Path(result_data_dir).exists() == False:
         Path(result_data_dir).mkdir()
-    return f"{result_data_dir}/{variable}_era5.csv"
+    return f"{result_data_dir}/{variable}_{mode}.csv"
 
 
 def get_result_data(variable: str, year: str = None):
@@ -196,8 +215,8 @@ def get_intermediate_data_path(variable: str, year: str = None):
     if Path(intermediate_data_dir).exists() == False:
         Path(intermediate_data_dir).mkdir()
     if year is None:
-        return f"{intermediate_data_dir}/{variable}_era5.csv"
-    return f"{intermediate_data_dir}/{variable}_era5_{year}.csv"
+        return f"{intermediate_data_dir}/{variable}_{mode}.csv"
+    return f"{intermediate_data_dir}/{variable}_{mode}_{year}.csv"
 
 
 def get_intermediate_data(variable: str, year: str = None):
@@ -405,18 +424,18 @@ def merge_intermediate(variable_name: str):
 
 
 def get_origin_result_data_path(variable: str = None):
-    if Path(result_data_dir + "/origin").exists() == False:
-        Path(result_data_dir + "/origin").mkdir()
+    if Path(result_data_dir + f"/origin_{mode}").exists() == False:
+        Path(result_data_dir + f"/origin_{mode}").mkdir()
     if variable is None:
-        return f"{result_data_dir}/origin"
+        return f"{result_data_dir}/origin_{mode}"
 
-    return f"{result_data_dir}/origin/{variable}.csv"
+    return f"{result_data_dir}/origin_{mode}/{variable}.csv"
 
 
 def get_outlier_result_data_path(variable: str = None):
-    if Path(result_data_dir + "/outlier").exists() == False:
-        Path(result_data_dir + "/outlier").mkdir()
+    if Path(result_data_dir + f"/outlier_{mode}").exists() == False:
+        Path(result_data_dir + f"/outlier_{mode}").mkdir()
 
     if variable is None:
-        return f"{result_data_dir}/outlier"
-    return f"{result_data_dir}/outlier/{variable}.csv"
+        return f"{result_data_dir}/outlier_{mode}"
+    return f"{result_data_dir}/outlier_{mode}/{variable}.csv"

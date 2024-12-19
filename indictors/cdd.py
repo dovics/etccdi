@@ -5,7 +5,7 @@ import xclim
 from xclim.indicators.atmos import maximum_consecutive_dry_days
 from utils import (
     get_origin_result_data_path,
-    range_era5_data_period,
+    range_data_period,
     mean_by_region,
     reindex_ds_to_all_year,
     merge_intermediate_post_process,
@@ -34,7 +34,7 @@ def draw(df: pd.DataFrame, ax=None):
 
 def calculate(process: bool = True):
     if process:
-        range_era5_data_period("pr", process_cdd, mean_by_region)
+        range_data_period("pr", process_cdd, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)
     df_post_process.to_csv(
