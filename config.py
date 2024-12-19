@@ -63,15 +63,16 @@ intermediate_data_dir = "intermediate_data"
 
 period_start = "10-01"
 period_end = "06-30"
-start_year = 1980
-end_year = 2023
-
+# start_year = 1980
+# end_year = 2023
+start_year = 2015
+end_year = 2020
 base_start_year = 1961
 base_end_year = 1990
 
 cds_api_key = os.environ.get("CDS_API_KEY")
 
-use_cache = True
+use_cache = False
 
 download_era5 = False
 use_download_cache = use_cache
@@ -88,5 +89,5 @@ pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
 
-mode="era5"
+mode="ssp126"
 base_mode="era5"

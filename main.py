@@ -15,8 +15,8 @@ from common.outlier import process_outlier_grid_all
 from common.reshape import split_data_by_column
 
 indictor_list = [
-    "rsds",
-    "hur",
+    # "rsds",
+    # "hur",
     "gdd",
     "pr",
     "cwd",

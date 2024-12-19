@@ -80,7 +80,8 @@ def load_daily_data_single(variable, year, local_mode: str):
     if use_cache and Path(path).exists():
         print(f"Using cached {path}")
         return xr.open_zarr(path)
-
+    else:
+        print(f"Generating {path}")
     if local_mode == "era5":
         era5_ds = load_era5_date(variable, year)
         ds = convert_era5_to_cf_daily(
@@ -88,6 +89,7 @@ def load_daily_data_single(variable, year, local_mode: str):
         )
     else:
         ds = load_cmip6_data(variable, year, local_mode=local_mode)
+        ds = add_unit_for_cmip6(ds, variable)
 
     save_to_zarr(ds, path)
     if ds[variable].isnull().any():
@@ -267,6 +269,14 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
     )
 
 
+def add_unit_for_cmip6(ds: xr.Dataset, variable: str) -> xr.Dataset:
+    if variable == "tas" or variable == "tasmin" or variable == "tasmax":
+        ds[variable].attrs["units"] = "K"
+    
+    if variable == "pr":
+        ds[variable].attrs["units"] = "mm/day"
+        
+    return ds
 def max_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
     da = da.load().astype(float)
     da = da.rio.write_crs(gdf.crs)
