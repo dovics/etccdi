@@ -14,6 +14,8 @@ from common.outlier import process_outlier_grid_all
 
 from common.reshape import split_data_by_column
 
+from logutil import info, error, warn
+
 indictor_list = [
     # "rsds",
     # "hur",
@@ -42,18 +44,18 @@ def calculate_indictors(indictor_list: list):
     for indictor in indictor_list:
         target = get_origin_result_data_path(indictor)
         if use_cache and Path(target).exists():
-            print(f"{indictor} already exists")
+            info(f"{indictor} already exists")
             continue
 
         module = import_indictor(indictor)
         if hasattr(module, "calculate"):
             try:
                 module.calculate()
-                print(f"{indictor} calculate success")
+                info(f"{indictor} calculate success")
             except Exception as e:
-                print(f"Error executing {indictor}: {e}")
+                error(f"Error executing {indictor}: {e}")
         else:
-            print(f"Function 'calculate' not found in {indictor}")
+            warn(f"Function 'calculate' not found in {indictor}")
 
 
 def merge_post_process_indictors(indictor_list: list):
@@ -120,7 +122,13 @@ def plot(indictor_list: list):
         module.draw(df, ax)
 
         if hasattr(module, "unit"):
-            add_point_map(slope, indictor, ax, unit=module.unit + "\cdot 10a^{-1}", legend_location=(0, 0.625))
+            add_point_map(
+                slope,
+                indictor,
+                ax,
+                unit=module.unit + "\cdot 10a^{-1}",
+                legend_location=(0, 0.625),
+            )
         else:
             add_point_map(slope, indictor, ax, legend_location=(0, 0.7))
         add_number(ax, f"({chr(97 + i)})")

@@ -8,6 +8,7 @@ import dask
 import zarr
 import pandas as pd
 import geopandas as gpd
+from logutil import info, error
 
 from config import (
     era5_data_dir,
@@ -25,7 +26,7 @@ from config import (
     cmip6_model_list,
     downscaling_methods,
     mode,
-    base_mode
+    base_mode,
 )
 
 
@@ -45,14 +46,21 @@ def get_era5_data_path(variable: str, year: str):
 def load_era5_date(variable: str, year: str):
     return xr.open_dataset(get_era5_data_path(variable, year))
 
+
 def load_cmip6_data(variable: str, year: str, local_mode: str) -> xr.Dataset:
     ds_list = []
     for model in cmip6_model_list:
-        path = Path(cmip6_data_dir).joinpath(model).joinpath(f"{variable}_{local_mode}_{model}_{downscaling_methods[variable]}.zarr")
+        path = (
+            Path(cmip6_data_dir)
+            .joinpath(model)
+            .joinpath(
+                f"{variable}_{local_mode}_{model}_{downscaling_methods[variable]}.zarr"
+            )
+        )
         ds = xr.open_zarr(path)
         ds = ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"))
         ds_list.append(ds)
-    
+
     concat_ds = xr.concat(ds_list, dim="model")
     return concat_ds.mean(dim="model")
 
@@ -78,10 +86,10 @@ def load_daily_data(var_list: Union[list[str], str], year: str, local_mode: str)
 def load_daily_data_single(variable, year, local_mode: str):
     path = get_cf_daily_date_path(variable, year, local_mode=local_mode)
     if use_cache and Path(path).exists():
-        print(f"Using cached {path}")
+        info(f"Using cached {path}")
         return xr.open_zarr(path)
     else:
-        print(f"Generating {path}")
+        info(f"Generating {path}")
     if local_mode == "era5":
         era5_ds = load_era5_date(variable, year)
         ds = convert_era5_to_cf_daily(
@@ -93,7 +101,7 @@ def load_daily_data_single(variable, year, local_mode: str):
 
     save_to_zarr(ds, path)
     if ds[variable].isnull().any():
-        print(f"{variable} {year} has null")
+        error(f"{variable} {year} has null")
         exit(1)
     return ds
 
@@ -177,7 +185,9 @@ def merge_base_years_period(
         period_end, "%m-%d"
     ):
         for year in range(base_start_year + 1, base_end_year + 1):
-            last_year_ds = load_daily_data(var_list, str(year - 1), local_mode=base_mode)
+            last_year_ds = load_daily_data(
+                var_list, str(year - 1), local_mode=base_mode
+            )
             this_year_ds = load_daily_data(var_list, str(year), local_mode=base_mode)
             merged_ds = xr.concat([last_year_ds, this_year_ds], dim="time")
             selected_ds = merged_ds.sel(
@@ -272,11 +282,13 @@ def convert_era5_to_cf_daily(ds: xr.Dataset, variable: str) -> xr.Dataset:
 def add_unit_for_cmip6(ds: xr.Dataset, variable: str) -> xr.Dataset:
     if variable == "tas" or variable == "tasmin" or variable == "tasmax":
         ds[variable].attrs["units"] = "K"
-    
+
     if variable == "pr":
         ds[variable].attrs["units"] = "mm/day"
-        
+
     return ds
+
+
 def max_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
     da = da.load().astype(float)
     da = da.rio.write_crs(gdf.crs)
@@ -290,7 +302,7 @@ def max_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
             mean_value = clipped.max(dim=["lat", "lon"], skipna=True)
             if isinstance(mean_value.values, list):
                 if len(mean_value.values) != 1:
-                    print(
+                    error(
                         f"error for mean value length not equal to 1 for region {region["name"]}"
                     )
                 averages.append({"name": region["name"], "value": mean_value.values[0]})
@@ -298,7 +310,7 @@ def max_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
                 averages.append({"name": region["name"], "value": mean_value.values})
 
         except Exception as e:
-            print(region["name"], "error:", e)
+            error(region["name"], "error:", e)
             continue
 
     results_df = pd.DataFrame(averages)
@@ -318,7 +330,7 @@ def mean_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
             mean_value = clipped.mean(dim=["lat", "lon"], skipna=True)
             if isinstance(mean_value.values, list):
                 if len(mean_value.values) != 1:
-                    print(
+                    error(
                         f"error for mean value length not equal to 1 for region {region["name"]}"
                     )
                 averages.append({"name": region["name"], "value": mean_value.values[0]})
@@ -330,7 +342,7 @@ def mean_by_gdf(da: xr.DataArray, gdf: gpd.GeoDataFrame) -> pd.DataFrame:
                 averages.append({"name": region["name"], "value": mean_value.values})
 
         except Exception as e:
-            print(region["name"], "error:", e)
+            error(region["name"], "error:", e)
             continue
 
     results_df = pd.DataFrame(averages)

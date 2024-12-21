@@ -45,7 +45,7 @@ country_list = [
     "于田县",
 ]
 
-cmip6_model_list = ["ACCESS-CM2", "BCC-CSM2-MR", "CanESM5"]
+cmip6_model_list = ["ACCESS-CM2", "BCC-CSM2-MR", "CanESM5", "CanESM5", "EC-Earth3"]
 cmip6_mode_list = ["ssp126", "ssp245", "ssp370", "ssp585"]
 downscaling_methods = {
     "rsds": "gard",
@@ -66,13 +66,13 @@ period_end = "06-30"
 # start_year = 1980
 # end_year = 2023
 start_year = 2015
-end_year = 2020
+end_year = 2100
 base_start_year = 1961
 base_end_year = 1990
 
 cds_api_key = os.environ.get("CDS_API_KEY")
 
-use_cache = False
+use_cache = True
 
 download_era5 = False
 use_download_cache = use_cache
