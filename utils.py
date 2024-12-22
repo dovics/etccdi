@@ -9,6 +9,7 @@ import zarr
 import pandas as pd
 import geopandas as gpd
 from logutil import info, error
+import importlib.util as importlib
 
 from config import (
     era5_data_dir,
@@ -28,6 +29,14 @@ from config import (
     mode,
     base_mode,
 )
+
+
+def import_indictor(indictor: str):
+    module_path = f"indictors\\{indictor}.py"
+    spec = importlib.spec_from_file_location(indictor, module_path)
+    module = importlib.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def get_year_from_path(path: str):
@@ -446,18 +455,30 @@ def merge_intermediate(variable_name: str):
 
 
 def get_origin_result_data_path(variable: str = None):
-    if Path(result_data_dir + f"/origin_{mode}").exists() == False:
-        Path(result_data_dir + f"/origin_{mode}").mkdir()
+    return get_origin_result_data_path_by_mode(variable, mode)
+
+
+def get_origin_result_data_path_by_mode(
+    variable: str = None, local_mode: str = None
+) -> str:
+    if Path(result_data_dir + f"/origin_{local_mode}").exists() == False:
+        Path(result_data_dir + f"/origin_{local_mode}").mkdir()
     if variable is None:
-        return f"{result_data_dir}/origin_{mode}"
+        return f"{result_data_dir}/origin_{local_mode}"
 
-    return f"{result_data_dir}/origin_{mode}/{variable}.csv"
+    return f"{result_data_dir}/origin_{local_mode}/{variable}.csv"
 
 
-def get_outlier_result_data_path(variable: str = None):
-    if Path(result_data_dir + f"/outlier_{mode}").exists() == False:
-        Path(result_data_dir + f"/outlier_{mode}").mkdir()
+def get_outlier_result_data_path(variable: str = None) -> str:
+    return get_outlier_result_data_path_by_mode(variable, mode)
+
+
+def get_outlier_result_data_path_by_mode(
+    variable: str = None, local_mode: str = None
+) -> str:
+    if Path(result_data_dir + f"/outlier_{local_mode}").exists() == False:
+        Path(result_data_dir + f"/outlier_{local_mode}").mkdir()
 
     if variable is None:
-        return f"{result_data_dir}/outlier_{mode}"
-    return f"{result_data_dir}/outlier_{mode}/{variable}.csv"
+        return f"{result_data_dir}/outlier_{local_mode}"
+    return f"{result_data_dir}/outlier_{local_mode}/{variable}.csv"

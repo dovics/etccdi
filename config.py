@@ -45,8 +45,9 @@ country_list = [
     "于田县",
 ]
 
-cmip6_model_list = ["ACCESS-CM2", "BCC-CSM2-MR", "CanESM5", "CanESM5", "EC-Earth3"]
-cmip6_mode_list = ["ssp126", "ssp245", "ssp370", "ssp585"]
+cmip6_model_list = ["ACCESS-CM2", "BCC-CSM2-MR", "CanESM5", "CanESM5"]
+mode_list = ["era5", "ssp126", #"ssp245", "ssp370",
+             "ssp585"]
 downscaling_methods = {
     "rsds": "gard",
     "hur": "gard",
@@ -63,10 +64,10 @@ intermediate_data_dir = "intermediate_data"
 
 period_start = "10-01"
 period_end = "06-30"
-# start_year = 1980
-# end_year = 2023
-start_year = 2015
-end_year = 2100
+start_year = 1980
+end_year = 2023
+# start_year = 2015
+# end_year = 2100
 base_start_year = 1961
 base_end_year = 1990
 
@@ -89,5 +90,5 @@ pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
 
-mode="ssp126"
+mode="era5"
 base_mode="era5"

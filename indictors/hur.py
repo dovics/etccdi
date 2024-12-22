@@ -8,7 +8,7 @@ from utils import (
     merge_intermediate,
 )
 from plot import draw_latlon_map, add_title
-from config import tas_colormap
+from config import tas_colormap, mode
 from xclim.indicators.atmos import relative_humidity_from_dewpoint
 
 
@@ -16,21 +16,32 @@ from xclim.indicators.atmos import relative_humidity_from_dewpoint
 indicator_name = "hur"
 unit = "\%"
 
-def process_hur(ds: xr.Dataset) -> xr.DataArray:
+
+def process_hur_era5(ds: xr.Dataset) -> xr.DataArray:
     hur = relative_humidity_from_dewpoint(tas=ds["tas"], tdps=ds["tdps"])
 
     result = hur.mean(dim="time")
     result.name = indicator_name
     return result
 
+def process_hur_cmip6(ds: xr.Dataset) -> xr.DataArray:
+    hur = ds["hur"].mean(dim="time")
+    hur.name = indicator_name
+    return hur 
+    
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
     add_title(ax, f"RH (${unit}$)")
 
+
 def calculate(process: bool = True):
+
     if process:
-        range_data_period(["tdps", "tas"], process_hur, mean_by_region)
+        if mode == "era5":
+            range_data_period(["tdps", "tas"], process_hur_era5, mean_by_region)
+        else:
+            range_data_period(["hur"], process_hur_cmip6, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)
     df_post_process.to_csv(

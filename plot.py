@@ -9,10 +9,19 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from matplotlib.path import Path
-from utils import get_gdf_list, find_region_by_name
-from config import country_list, target_crs, gdf_crs
+from utils import (
+    add_region_latlon,
+    get_gdf_list,
+    find_region_by_name,
+    get_origin_result_data_path,
+    get_origin_result_data_path_by_mode,
+    get_outlier_result_data_path,
+    import_indictor,
+)
+from config import country_list, target_crs, gdf_crs, mode, mode_list
 from cartopy.mpl.patch import geos_to_path
 from cartopy.feature import ShapelyFeature
+from scipy.stats import linregress
 
 province_full_geojson = "static/xinjiang_full.json"
 province_border_geojson = "static/xinjiang.json"
@@ -361,3 +370,111 @@ def draw_line(ax: plt.Axes):
     )
 
     ax.add_feature(shape_feature)
+
+
+def calculate_slope(df: pd.DataFrame):
+    def process_slope(county_df: pd.DataFrame):
+        result = pd.Series()
+        for c in county_df.columns:
+            if c == "year":
+                continue
+            line = linregress(county_df["year"], county_df[c])
+
+            result[c] = round(line.slope * 10, 2)
+            result[c + "_up"] = line.slope > 0
+            result[c + "_sign"] = line.pvalue < 0.05
+        return result
+
+    slope_result = df.groupby("name").apply(process_slope)
+
+    return slope_result
+
+
+def map_plot(indictor_list: list):
+    point_df = pd.read_csv(get_outlier_result_data_path("all"))
+    slope = calculate_slope(point_df)
+    slope = add_region_latlon(slope)
+
+    csv_path = get_origin_result_data_path("all_mean")
+    df = pd.read_csv(csv_path)
+    fig = plt.figure(figsize=(24, 24))
+    i = 0
+    for indictor in indictor_list:
+        module = import_indictor(indictor)
+        ax = fig.add_subplot(4, 3, i + 1, projection=target_crs)
+        module.draw(df, ax)
+
+        if hasattr(module, "unit"):
+            add_point_map(
+                slope,
+                indictor,
+                ax,
+                unit=module.unit + "\cdot 10a^{-1}",
+                legend_location=(0, 0.625),
+            )
+        else:
+            add_point_map(slope, indictor, ax, legend_location=(0, 0.7))
+        add_number(ax, f"({chr(97 + i)})")
+        i += 1
+
+    plt.savefig(f"result_data/map_{mode}.png", dpi=300)
+
+
+def drop_unuseful_columns(df: pd.DataFrame):
+    if "time" in df.columns:
+        df = df.drop(columns=["time"])
+
+    if "lat" in df.columns:
+        df = df.drop(columns=["lat"])
+
+    if "lon" in df.columns:
+        df = df.drop(columns=["lon"])
+
+    if "name" in df.columns:
+        df = df.drop(columns=["name"])
+
+    return df
+
+
+mode_color_map = {
+    "era5": "blue",
+    "ssp126": "green",
+    "ssp245": "orange",
+    "ssp370": "red",
+    "ssp585": "purple",
+}
+
+
+def line_plot(indictor_list: list, post_process=True):
+    fig = plt.figure(figsize=(24, 24))
+    for indictor in indictor_list:
+
+        ax = fig.add_subplot(4, 3, indictor_list.index(indictor) + 1)
+
+        for local_mode in mode_list:
+            if post_process:
+                indictor_name = indictor + "_post_process"
+                value_name = "value"
+            else:
+                indictor_name = indictor
+                value_name = indictor
+
+            df = pd.read_csv(
+                get_origin_result_data_path_by_mode(
+                    indictor_name, local_mode=local_mode
+                )
+            )
+
+            df = drop_unuseful_columns(df)
+            mean = df.groupby("year").mean().reset_index()
+            mean.plot(
+                x="year",
+                y=value_name,
+                ax=ax,
+                color=mode_color_map[local_mode],
+                label=local_mode,
+            )
+        add_title(ax, indictor)
+        add_number(ax, f"({chr(97 + indictor_list.index(indictor))})")
+
+    plt.savefig(f"result_data/line_{mode}.png", dpi=300)
