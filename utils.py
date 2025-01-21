@@ -63,10 +63,10 @@ def load_cmip6_data(variable: str, year: str, local_mode: str) -> xr.Dataset:
             Path(cmip6_data_dir)
             .joinpath(model)
             .joinpath(
-                f"{variable}_{local_mode}_{model}_{downscaling_methods[variable]}.zarr"
+                f"{variable}_{local_mode}_{model}_{downscaling_methods[variable]}.nc"
             )
         )
-        ds = xr.open_zarr(path)
+        ds = xr.open_dataset(path)
         ds = ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"))
         ds_list.append(ds)
 
@@ -75,8 +75,8 @@ def load_cmip6_data(variable: str, year: str, local_mode: str) -> xr.Dataset:
 
 
 def get_cf_daily_date_path(variable: str, year: str, local_mode: str):
-    if Path(result_data_dir).exists() == False:
-        Path(result_data_dir).mkdir()
+    if Path(intermediate_data_dir).exists() == False:
+        Path(intermediate_data_dir).mkdir()
     return f"{intermediate_data_dir}/{variable}_cf_daily_{year}_{local_mode}.zarr"
 
 
@@ -107,7 +107,7 @@ def load_daily_data_single(variable, year, local_mode: str):
     else:
         ds = load_cmip6_data(variable, year, local_mode=local_mode)
         ds = add_unit_for_cmip6(ds, variable)
-
+    
     save_to_zarr(ds, path)
     if ds[variable].isnull().any():
         error(f"{variable} {year} has null")
