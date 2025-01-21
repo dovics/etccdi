@@ -6,28 +6,13 @@ from utils import (
     import_indictor,
 )
 
-from config import use_cache, mode
+from config import use_cache, mode, indictor_list
 from plot import map_plot, line_plot
 from common.outlier import process_outlier_grid_all
 
 from common.reshape import split_data_by_column
 
 from logutil import info, error, warn
-
-indictor_list = [
-    "rsds",
-    "hur",
-    "gdd",
-    "pr",
-    "cwd",
-    "r10",
-    "r95p",
-    "rx1day",
-    "tn90p",
-    "tx90p",
-    "txx",
-    "fd",
-]
 
 
 def calculate_indictors(indictor_list: list):

@@ -2,6 +2,21 @@ import cartopy.crs as ccrs
 import os
 import matplotlib.pyplot as plt
 
+indictor_list = [
+    "rsds",
+    # "hur",
+    "gdd",
+    "pr",
+    # "cwd",
+    # "r10",
+    # "r95p",
+    # "rx1day",
+    # "tn90p",
+    # "tx90p",
+    # "txx",
+    # "fd",
+]
+
 country_list = [
     "伊宁县",
     "察布查尔锡伯自治县",
@@ -45,35 +60,47 @@ country_list = [
     "于田县",
 ]
 
-cmip6_model_list = ["ACCESS-CM2", "BCC-CSM2-MR", "CanESM5", "CanESM5"]
-mode_list = ["era5", "ssp126", #"ssp245", "ssp370",
-             "ssp585"]
+cmip6_model_list = [
+    "ACCESS-CM2",
+    "BCC-CSM2-MR",
+    "CanESM5",
+    "EC-Earth3",
+    "FGOALS-g3",
+]
+
+mode_list = ["era5", "ssp126"]  # "ssp245", "ssp370",
 downscaling_methods = {
-    "rsds": "gard",
-    "hur": "gard",
-    "tas": "bcsd",
-    "tasmax": "bcsd",
-    "tasmin": "bcsd",
-    "pr": "bcsd",
+    # "rsds": "gard",
+    # "hur": "gard",
+    # "tas": "bcsd",
+    # "tasmax": "bcsd",
+    # "tasmin": "bcsd",
+    # "pr": "bcsd",
+    "rsds": "dcm",
+    "hur": "dcm",
+    "tas": "dcm",
+    "tasmax": "dcm",
+    "tasmin": "dcm",
+    "pr": "dcm",
 }
 
-cmip6_data_dir = "../downscaling/result_data"
+cmip6_data_dir = "Z:/fangjiamin/bias_correction/result_data"
 era5_data_dir = "era5_data"
 result_data_dir = "result_data"
 intermediate_data_dir = "intermediate_data"
 
 period_start = "10-01"
 period_end = "06-30"
-start_year = 1980
-end_year = 2023
-# start_year = 2015
-# end_year = 2100
+# start_year = 1980
+# end_year = 2023
+start_year = 2015
+end_year = 2100
 base_start_year = 1961
 base_end_year = 1990
 
 cds_api_key = os.environ.get("CDS_API_KEY")
 
-use_cache = True
+use_cache = False
 
 download_era5 = False
 use_download_cache = use_cache
@@ -90,5 +117,5 @@ pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
 
-mode="era5"
-base_mode="era5"
+mode = "ssp126"
+base_mode = "era5"

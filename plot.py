@@ -1,14 +1,21 @@
 import matplotlib.patches as mpatches
 from matplotlib import pyplot as plt
+import matplotlib.ticker as mticker
+from matplotlib.path import Path
 
 import cartopy.crs as ccrs
-import cartopy.feature as cfeat
-import matplotlib.ticker as mticker
+from cartopy.mpl.patch import geos_to_path
+from cartopy.feature import ShapelyFeature
+from cartopy import feature as cfeat
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+
+from scipy.stats import linregress
+
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-from matplotlib.path import Path
+import xarray as xr
+
 from utils import (
     add_region_latlon,
     get_gdf_list,
@@ -17,11 +24,9 @@ from utils import (
     get_origin_result_data_path_by_mode,
     get_outlier_result_data_path,
     import_indictor,
+    load_daily_data,
 )
 from config import country_list, target_crs, gdf_crs, mode, mode_list
-from cartopy.mpl.patch import geos_to_path
-from cartopy.feature import ShapelyFeature
-from scipy.stats import linregress
 
 province_full_geojson = "static/xinjiang_full.json"
 province_border_geojson = "static/xinjiang.json"
@@ -131,6 +136,18 @@ def draw_country_map(df: pd.DataFrame, fill=True):
         )
     else:
         merged_gdf.boundary.plot(edgecolor="black", linewidth=1)
+
+
+def clip_df_data(df: pd.DataFrame, gdf: gpd.GeoDataFrame = None):
+    if gdf is None:
+        gdf = gpd.read_file(province_border_geojson)
+    (minx, miny, maxx, maxy) = get_bounds(gdf, margin=0.25)
+    return df[
+        (df["lat"] >= miny)
+        & (df["lat"] <= maxy)
+        & (df["lon"] >= minx)
+        & (df["lon"] <= maxx)
+    ]
 
 
 def draw_latlon_map(
@@ -448,7 +465,6 @@ mode_color_map = {
 def line_plot(indictor_list: list, post_process=True):
     fig = plt.figure(figsize=(24, 24))
     for indictor in indictor_list:
-
         ax = fig.add_subplot(4, 3, indictor_list.index(indictor) + 1)
 
         for local_mode in mode_list:
@@ -465,6 +481,9 @@ def line_plot(indictor_list: list, post_process=True):
                 )
             )
 
+            if not post_process:
+                df = clip_df_data(df)
+                
             df = drop_unuseful_columns(df)
             mean = df.groupby("year").mean().reset_index()
             mean.plot(
@@ -478,3 +497,61 @@ def line_plot(indictor_list: list, post_process=True):
         add_number(ax, f"({chr(97 + indictor_list.index(indictor))})")
 
     plt.savefig(f"result_data/line_{mode}.png", dpi=300)
+
+
+def get_common_levels(era5_data: xr.DataArray, cmip6_data: xr.DataArray):
+    global_min = min(era5_data.min().values, cmip6_data.min().values)
+    global_max = max(era5_data.max().values, cmip6_data.max().values)
+    levels = np.linspace(global_min, global_max, 20)
+    return levels
+
+
+def trim_bound_data(data: xr.Dataset) -> xr.Dataset:
+    gdf = gpd.read_file(province_border_geojson)
+    (minx, miny, maxx, maxy) = get_bounds(gdf, margin=0.25)
+
+    return data.sel(lon=slice(minx, maxx), lat=slice(maxy, miny))
+
+
+def draw_compare_map(indictor_list: list, time: str):
+    fig = plt.figure(figsize=(20, 6 * len(indictor_list)))
+    year = time.split("-")[0]
+    for i, indictor in enumerate(indictor_list):
+        era5_ds = load_daily_data(indictor, year, "era5")
+        cmip6_ds = load_daily_data(indictor, year, "ssp126")
+
+        era5_data = trim_bound_data(era5_ds).sel(time=time)[indictor]
+        cmip6_data = trim_bound_data(cmip6_ds).sel(time=time)[indictor]
+
+        levels = get_common_levels(era5_data, cmip6_data)
+
+        era5_ax = fig.add_subplot(
+            len(indictor_list), 2, 2 * i + 1, projection=target_crs
+        )
+        cmip6_ax = fig.add_subplot(
+            len(indictor_list), 2, 2 * i + 2, projection=target_crs
+        )
+
+        draw_border(era5_ax)
+        draw_border(cmip6_ax)
+        era5_contour = era5_ax.contourf(
+            era5_data["lon"],
+            era5_data["lat"],
+            era5_data,
+            levels=levels,
+            cmap="coolwarm",
+        )
+        cmip6_contour = cmip6_ax.contourf(
+            cmip6_data["lon"],
+            cmip6_data["lat"],
+            cmip6_data,
+            levels=levels,
+            cmap="coolwarm",
+        )
+        era5_ax.set_title(f"ERA5 {indictor} {time}")
+        cmip6_ax.set_title(f"CMIP6 {indictor} {time}")
+
+        plt.colorbar(cmip6_contour, ax=cmip6_ax, pad=0.05, fraction=0.03)
+        plt.colorbar(era5_contour, ax=era5_ax, pad=0.05, fraction=0.03)
+
+    plt.savefig(f"result_data/compare_{time}.png", dpi=300)

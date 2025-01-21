@@ -52,7 +52,7 @@ def get_era5_data_path(variable: str, year: str):
     return f"{era5_data_dir}/{variable}_era5_origin_{year}.nc"
 
 
-def load_era5_date(variable: str, year: str):
+def load_era5_date(variable: str, year: str) -> xr.Dataset:
     return xr.open_dataset(get_era5_data_path(variable, year))
 
 
