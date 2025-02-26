@@ -7,14 +7,14 @@ indictor_list = [
     # "hur",
     "gdd",
     "pr",
-    # "cwd",
-    # "r10",
-    # "r95p",
-    # "rx1day",
-    # "tn90p",
-    # "tx90p",
-    # "txx",
-    # "fd",
+    "cwd",
+    "r10",
+    "r95p",       
+    "rx1day",
+    "tn90p",
+    "tx90p",
+    "txx",
+    "fd",
 ]
 
 country_list = [
@@ -62,13 +62,24 @@ country_list = [
 
 cmip6_model_list = [
     "ACCESS-CM2",
+    "ACCESS-ESM1-5",
     "BCC-CSM2-MR",
     "CanESM5",
     "EC-Earth3",
     "FGOALS-g3",
+    "INM-CM4-8",
+    "INM-CM5-0",
+    "IPSL-CM6A-LR",
+    "KACE-1-0-G",
+    "MIROC-ES2L",
+    "MIROC6",
+    "MPI-ESM1-2-HR",
+    "MRI-ESM2-0",
+    "NorESM2-MM",
+    "UKESM1-0-LL",
 ]
 
-mode_list = ["era5", "ssp126"]  # "ssp245", "ssp370",
+mode_list = ["era5", "ssp126", "ssp245", "ssp370","ssp585"]  # "ssp245", "ssp370",
 downscaling_methods = {
     # "rsds": "gard",
     # "hur": "gard",
@@ -100,7 +111,7 @@ base_end_year = 1990
 
 cds_api_key = os.environ.get("CDS_API_KEY")
 
-use_cache = False
+use_cache = True
 
 download_era5 = False
 use_download_cache = use_cache
@@ -119,3 +130,4 @@ max_outlier = 5
 
 mode = "ssp126"
 base_mode = "era5"
+ 

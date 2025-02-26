@@ -63,10 +63,10 @@ def load_cmip6_data(variable: str, year: str, local_mode: str) -> xr.Dataset:
             Path(cmip6_data_dir)
             .joinpath(model)
             .joinpath(
-                f"{variable}_{local_mode}_{model}_{downscaling_methods[variable]}.nc"
+                f"{variable}_{local_mode}_{model}_{downscaling_methods[variable]}.zarr"
             )
         )
-        ds = xr.open_dataset(path)
+        ds = xr.open_zarr(path)
         ds = ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"))
         ds_list.append(ds)
 
@@ -107,11 +107,17 @@ def load_daily_data_single(variable, year, local_mode: str):
     else:
         ds = load_cmip6_data(variable, year, local_mode=local_mode)
         ds = add_unit_for_cmip6(ds, variable)
-    
+        if "month" in ds.coords:
+            ds = ds.reset_coords("month", drop=True)
+        if "number" in ds.coords:
+            ds = ds.reset_coords("number", drop=True)
+            
+    ds = ds.chunk({"time": 1000, "lat": -1, "lon": -1})
     save_to_zarr(ds, path)
     if ds[variable].isnull().any():
         error(f"{variable} {year} has null")
         exit(1)
+
     return ds
 
 
@@ -295,6 +301,9 @@ def add_unit_for_cmip6(ds: xr.Dataset, variable: str) -> xr.Dataset:
     if variable == "pr":
         ds[variable].attrs["units"] = "mm/day"
 
+    if variable == "rsds":
+        ds = ds * 24 * 3600 / 1000000
+        ds[variable].attrs["units"] = "MJ m**-2"
     return ds
 
 

@@ -18,17 +18,17 @@ from logutil import info, error, warn
 def calculate_indictors(indictor_list: list):
     for indictor in indictor_list:
         target = get_origin_result_data_path(indictor)
-        if use_cache and Path(target).exists():
-            info(f"{indictor} already exists")
-            continue
+        # if use_cache and Path(target).exists():
+        #     info(f"{indictor} already exists")
+        #     continue
 
         module = import_indictor(indictor)
         if hasattr(module, "calculate"):
-            try:
+            #try:
                 module.calculate()
                 info(f"{indictor} calculate success")
-            except Exception as e:
-                error(f"Error executing {indictor}: {e}")
+            #except Exception as e:
+            #    error(f"Error executing {indictor}: {e}")
         else:
             warn(f"Function 'calculate' not found in {indictor}")
 
@@ -74,7 +74,6 @@ if __name__ == "__main__":
         get_origin_result_data_path("all_mean"), float_format="%.2f"
     )
 
-    map_plot(indictor_list)
-
-    if mode != "era5":
-        line_plot(indictor_list)
+    # map_plot(indictor_list)
+    line_plot(indictor_list)
+  
