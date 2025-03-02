@@ -66,10 +66,10 @@ def load_cmip6_data(variable: str, year: str, local_mode: str) -> xr.Dataset:
                 f"{variable}_{local_mode}_{model}_{downscaling_methods[variable]}.zarr"
             )
         )
-        ds = xr.open_zarr(path)
+        ds = xr.open_zarr(path)    
         ds = ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"))
         ds_list.append(ds)
-
+    info(f"concat {len(ds_list)} models")
     concat_ds = xr.concat(ds_list, dim="model")
     return concat_ds.mean(dim="model")
 
@@ -106,12 +106,13 @@ def load_daily_data_single(variable, year, local_mode: str):
         )
     else:
         ds = load_cmip6_data(variable, year, local_mode=local_mode)
-        ds = add_unit_for_cmip6(ds, variable)
         if "month" in ds.coords:
             ds = ds.reset_coords("month", drop=True)
         if "number" in ds.coords:
             ds = ds.reset_coords("number", drop=True)
-            
+        if variable == "pr":
+            ds[variable] = xr.where(ds[variable] < 0, 0, ds[variable])
+        ds = add_unit_for_cmip6(ds, variable)
     ds = ds.chunk({"time": 1000, "lat": -1, "lon": -1})
     save_to_zarr(ds, path)
     if ds[variable].isnull().any():

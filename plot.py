@@ -10,7 +10,7 @@ from cartopy import feature as cfeat
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 
 from scipy.stats import linregress
-
+from common.delta_change import delta_change
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -466,7 +466,7 @@ def line_plot(indictor_list: list, post_process=True):
     fig = plt.figure(figsize=(24, 24))
     for indictor in indictor_list:
         ax = fig.add_subplot(4, 3, indictor_list.index(indictor) + 1)
-
+        base_df = None
         for local_mode in mode_list:
             if post_process:
                 indictor_name = indictor + "_post_process"
@@ -486,6 +486,12 @@ def line_plot(indictor_list: list, post_process=True):
                 
             df = drop_unuseful_columns(df)
             mean = df.groupby("year").mean().reset_index()
+            
+            if local_mode == "era5" and base_df is None:
+                base_mean = mean
+            else:
+                mean = delta_change(mean, base_mean, value_name)
+            
             mean.plot(
                 x="year",
                 y=value_name,

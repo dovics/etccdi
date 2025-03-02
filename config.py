@@ -3,18 +3,18 @@ import os
 import matplotlib.pyplot as plt
 
 indictor_list = [
-    "rsds",
+    # "rsds",
     # "hur",
-    "gdd",
+    # "gdd",
     "pr",
     "cwd",
     "r10",
     "r95p",       
     "rx1day",
-    "tn90p",
-    "tx90p",
-    "txx",
-    "fd",
+    # "tn90p",
+    # "tx90p",
+    # "txx",
+    # "fd",
 ]
 
 country_list = [
@@ -79,7 +79,7 @@ cmip6_model_list = [
     "UKESM1-0-LL",
 ]
 
-mode_list = ["era5", "ssp126", "ssp245", "ssp370","ssp585"]  # "ssp245", "ssp370",
+mode_list = ["era5", "ssp126", "ssp245", "ssp370", "ssp585"]  # "ssp245", "ssp370",
 downscaling_methods = {
     # "rsds": "gard",
     # "hur": "gard",
@@ -92,7 +92,7 @@ downscaling_methods = {
     "tas": "dcm",
     "tasmax": "dcm",
     "tasmin": "dcm",
-    "pr": "dcm",
+    "pr": "qdm",
 }
 
 cmip6_data_dir = "Z:/fangjiamin/bias_correction/result_data"

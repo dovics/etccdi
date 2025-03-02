@@ -9,7 +9,6 @@ from utils import (
 from config import use_cache, mode, indictor_list
 from plot import map_plot, line_plot
 from common.outlier import process_outlier_grid_all
-
 from common.reshape import split_data_by_column
 
 from logutil import info, error, warn
@@ -74,6 +73,6 @@ if __name__ == "__main__":
         get_origin_result_data_path("all_mean"), float_format="%.2f"
     )
 
-    # map_plot(indictor_list)
+    map_plot(indictor_list)
     line_plot(indictor_list)
   
