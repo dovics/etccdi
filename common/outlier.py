@@ -3,7 +3,7 @@ import numpy as np
 from scipy import stats
 from utils import get_outlier_result_data_path
 from config import max_outlier
-
+from common.reshape import split_data_by_column
 
 def outliers_framework(df: pd.DataFrame, process, variable: str, group_by):
     df = df.astype(float)
@@ -166,7 +166,7 @@ def process_outlier_grid(
             print(f"Info: {variable} {method} failed {i}: {e}")
             continue
 
-def process_outlier_grid_all(df: pd.DataFrame, method: str = "mad"):
+def process_outlier_grid_all(df: pd.DataFrame, method: str = "mad") -> pd.DataFrame:
     total_result = df.copy()
     for variable in df.columns:
         result = process_outlier_grid(df, variable, method)
@@ -177,4 +177,5 @@ def process_outlier_grid_all(df: pd.DataFrame, method: str = "mad"):
         print(f"{variable} {method} success")
 
     total_result.to_csv(get_outlier_result_data_path(f"all"), float_format="%.2f")
+    split_data_by_column(df, get_outlier_result_data_path())
     return total_result

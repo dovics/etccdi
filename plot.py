@@ -23,6 +23,8 @@ from utils import (
     get_origin_result_data_path,
     get_origin_result_data_path_by_mode,
     get_outlier_result_data_path,
+    get_delta_change_result_data_path_by_mode,
+    get_outlier_result_data_path_by_mode,
     import_indictor,
     load_daily_data,
 )
@@ -462,45 +464,43 @@ mode_color_map = {
 }
 
 
-def line_plot(indictor_list: list, post_process=True):
+def line_plot(indictor_list: list, post_process=False, delta_change=True):
     fig = plt.figure(figsize=(24, 24))
+    ax_dict = {}
     for indictor in indictor_list:
-        ax = fig.add_subplot(4, 3, indictor_list.index(indictor) + 1)
-        base_df = None
-        for local_mode in mode_list:
-            if post_process:
-                indictor_name = indictor + "_post_process"
-                value_name = "value"
-            else:
-                indictor_name = indictor
-                value_name = indictor
+        ax_dict[indictor] = fig.add_subplot(4, 3, indictor_list.index(indictor) + 1)
+        add_title(ax_dict[indictor], indictor)
+        add_number(ax_dict[indictor], f"({chr(97 + indictor_list.index(indictor))})")
 
+
+    for local_mode in mode_list:
+        if local_mode != "era5" and delta_change:
             df = pd.read_csv(
-                get_origin_result_data_path_by_mode(
-                    indictor_name, local_mode=local_mode
-                )
+                get_delta_change_result_data_path_by_mode("all", local_mode=local_mode),
+                index_col=["year"],
+            )
+        else:
+            df = pd.read_csv(
+                get_outlier_result_data_path_by_mode("all", local_mode=local_mode),
+                index_col=["year"],
             )
 
-            if not post_process:
-                df = clip_df_data(df)
-                
-            df = drop_unuseful_columns(df)
-            mean = df.groupby("year").mean().reset_index()
-            
-            if local_mode == "era5" and base_df is None:
-                base_mean = mean
-            else:
-                mean = delta_change(mean, base_mean, value_name)
-            
+        for indictor in indictor_list:
+            ax = ax_dict[indictor]
+
+            # if not post_process:
+            #     df = clip_df_data(df)
+            series = df[indictor]
+            mean = series.groupby("year").mean().reset_index()
+
             mean.plot(
                 x="year",
-                y=value_name,
+                y=indictor,
                 ax=ax,
                 color=mode_color_map[local_mode],
                 label=local_mode,
             )
-        add_title(ax, indictor)
-        add_number(ax, f"({chr(97 + indictor_list.index(indictor))})")
+
 
     plt.savefig(f"result_data/line_{mode}.png", dpi=300)
 

@@ -10,7 +10,7 @@ from config import use_cache, mode, indictor_list
 from plot import map_plot, line_plot
 from common.outlier import process_outlier_grid_all
 from common.reshape import split_data_by_column
-
+from common.delta_change import process_delta_change_all
 from logutil import info, error, warn
 
 
@@ -64,15 +64,16 @@ def merge_indictors(indictor_list: list):
 
 
 if __name__ == "__main__":
-    calculate_indictors(indictor_list)
-    df = merge_post_process_indictors(indictor_list)
-    df = process_outlier_grid_all(df)
-    split_data_by_column(df, get_outlier_result_data_path())
-    df = merge_indictors(indictor_list)
-    df.groupby(["lat", "lon"]).mean().to_csv(
-        get_origin_result_data_path("all_mean"), float_format="%.2f"
-    )
+    # calculate_indictors(indictor_list)
+    # df = merge_post_process_indictors(indictor_list)
+    # process_outlier_grid_all(df)
+    # df = merge_indictors(indictor_list)
+    # df.groupby(["lat", "lon"]).mean().to_csv(
+    #     get_origin_result_data_path("all_mean"), float_format="%.2f"
+    # )
 
-    map_plot(indictor_list)
+    # map_plot(indictor_list)
+    if mode != "era5":
+        process_delta_change_all()
     line_plot(indictor_list)
   

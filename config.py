@@ -3,18 +3,18 @@ import os
 import matplotlib.pyplot as plt
 
 indictor_list = [
-    # "rsds",
-    # "hur",
-    # "gdd",
+    "rsds",
+    "hur",
+    "gdd",
     "pr",
     "cwd",
     "r10",
     "r95p",       
     "rx1day",
-    # "tn90p",
-    # "tx90p",
-    # "txx",
-    # "fd",
+    "tn90p",
+    "tx90p",
+    "txx",
+    "fd",
 ]
 
 country_list = [
@@ -63,7 +63,7 @@ country_list = [
 cmip6_model_list = [
     "ACCESS-CM2",
     "ACCESS-ESM1-5",
-    "BCC-CSM2-MR",
+    # "BCC-CSM2-MR",
     "CanESM5",
     "EC-Earth3",
     "FGOALS-g3",
@@ -79,7 +79,7 @@ cmip6_model_list = [
     "UKESM1-0-LL",
 ]
 
-mode_list = ["era5", "ssp126", "ssp245", "ssp370", "ssp585"]  # "ssp245", "ssp370",
+mode_list = ["era5", "ssp126", "ssp245", "ssp370", "ssp585"]  # "ssp126", "ssp245", "ssp370", "ssp585"
 downscaling_methods = {
     # "rsds": "gard",
     # "hur": "gard",
@@ -89,6 +89,7 @@ downscaling_methods = {
     # "pr": "bcsd",
     "rsds": "dcm",
     "hur": "dcm",
+    "hurs": "dcm",
     "tas": "dcm",
     "tasmax": "dcm",
     "tasmin": "dcm",
@@ -128,6 +129,5 @@ pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
 
-mode = "ssp126"
+mode = "ssp585"
 base_mode = "era5"
- 

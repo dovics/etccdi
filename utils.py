@@ -492,3 +492,17 @@ def get_outlier_result_data_path_by_mode(
     if variable is None:
         return f"{result_data_dir}/outlier_{local_mode}"
     return f"{result_data_dir}/outlier_{local_mode}/{variable}.csv"
+
+def get_delta_change_result_data_path(variable: str = None) -> str:
+    return get_delta_change_result_data_path_by_mode(variable, mode)
+
+
+def get_delta_change_result_data_path_by_mode(
+    variable: str = None, local_mode: str = None
+) -> str:
+    if Path(result_data_dir + f"/delta_change_{local_mode}").exists() == False:
+        Path(result_data_dir + f"/delta_change_{local_mode}").mkdir()
+
+    if variable is None:
+        return f"{result_data_dir}/delta_change_{local_mode}"
+    return f"{result_data_dir}/delta_change_{local_mode}/{variable}.csv"

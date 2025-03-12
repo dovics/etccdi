@@ -25,6 +25,7 @@ def process_hur_era5(ds: xr.Dataset) -> xr.DataArray:
     return result
 
 def process_hur_cmip6(ds: xr.Dataset) -> xr.DataArray:
+    ds = ds.rename({"hurs": "hur"})
     hur = ds["hur"].mean(dim="time")
     hur.name = indicator_name
     return hur 
@@ -41,7 +42,7 @@ def calculate(process: bool = True):
         if mode == "era5":
             range_data_period(["tdps", "tas"], process_hur_era5, mean_by_region)
         else:
-            range_data_period(["hur"], process_hur_cmip6, mean_by_region)
+            range_data_period(["hurs"], process_hur_cmip6, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)
     df_post_process.to_csv(
