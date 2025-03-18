@@ -13,7 +13,7 @@ from common.reshape import split_data_by_column
 from common.delta_change import process_delta_change_all
 from logutil import info, error, warn
 
-
+local_mode = mode
 def calculate_indictors(indictor_list: list):
     for indictor in indictor_list:
         target = get_origin_result_data_path(indictor)
@@ -42,9 +42,9 @@ def merge_post_process_indictors(indictor_list: list):
     ]
 
     combined_df = pd.concat(df_list, axis=1)
-    combined_df = combined_df[combined_df.index.get_level_values("year") >= 1989]
+    combined_df = combined_df[combined_df.index.get_level_values("year") >= 1980]
     combined_df.to_csv(
-        get_origin_result_data_path("combined_post_process"), float_format="%.2f"
+        get_origin_result_data_path("all_post_process"), float_format="%.2f"
     )
     return combined_df
 
@@ -65,15 +65,16 @@ def merge_indictors(indictor_list: list):
 
 if __name__ == "__main__":
     # calculate_indictors(indictor_list)
-    # df = merge_post_process_indictors(indictor_list)
-    # process_outlier_grid_all(df)
-    # df = merge_indictors(indictor_list)
+    df = merge_post_process_indictors(indictor_list)
+    process_outlier_grid_all(df)
+    df = merge_indictors(indictor_list)
+    
     # df.groupby(["lat", "lon"]).mean().to_csv(
     #     get_origin_result_data_path("all_mean"), float_format="%.2f"
     # )
-
     # map_plot(indictor_list)
+    post_process=True
     if mode != "era5":
-        process_delta_change_all()
-    line_plot(indictor_list)
+        process_delta_change_all(post_process=post_process)
+        line_plot(indictor_list, post_process=post_process)
   

@@ -464,7 +464,7 @@ mode_color_map = {
 }
 
 
-def line_plot(indictor_list: list, post_process=False, delta_change=True):
+def line_plot(indictor_list: list, delta_change=True, post_process=False):
     fig = plt.figure(figsize=(24, 24))
     ax_dict = {}
     for indictor in indictor_list:
@@ -479,20 +479,24 @@ def line_plot(indictor_list: list, post_process=False, delta_change=True):
                 get_delta_change_result_data_path_by_mode("all", local_mode=local_mode),
                 index_col=["year"],
             )
-        else:
+        elif post_process:
             df = pd.read_csv(
                 get_outlier_result_data_path_by_mode("all", local_mode=local_mode),
                 index_col=["year"],
             )
-
+        else:
+            df = pd.read_csv(
+                get_origin_result_data_path_by_mode("all", local_mode=local_mode),
+                index_col=["year"],
+            )
+            
+            df = clip_df_data(df)
+            
         for indictor in indictor_list:
             ax = ax_dict[indictor]
 
-            # if not post_process:
-            #     df = clip_df_data(df)
             series = df[indictor]
             mean = series.groupby("year").mean().reset_index()
-
             mean.plot(
                 x="year",
                 y=indictor,
@@ -500,7 +504,7 @@ def line_plot(indictor_list: list, post_process=False, delta_change=True):
                 color=mode_color_map[local_mode],
                 label=local_mode,
             )
-
+            mean.to_csv(f"result_data/mean/{indictor}_{local_mode}.csv", index=False)
 
     plt.savefig(f"result_data/line_{mode}.png", dpi=300)
 
