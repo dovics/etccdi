@@ -492,20 +492,22 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False):
             
             df = clip_df_data(df)
             
+        mean_df = df.drop(columns="name").groupby("year").mean()
+        
         for indictor in indictor_list:
-            ax = ax_dict[indictor]
-
-            series = df[indictor]
-            mean = series.groupby("year").mean().reset_index()
-            mean.plot(
+            mean_df[indictor].plot(
                 x="year",
                 y=indictor,
-                ax=ax,
+                ax=ax_dict[indictor],
                 color=mode_color_map[local_mode],
                 label=local_mode,
             )
-            mean.to_csv(f"result_data/mean/{indictor}_{local_mode}.csv", index=False)
-
+            mean_df[indictor].to_csv(f"result_data/mean/{indictor}_{local_mode}.csv", index=False)
+        mean_df.to_csv(f"result_data/mean/all_{local_mode}.csv", index=True, float_format="%.2f")
+  
+    for indictor in indictor_list:
+        add_title(ax_dict[indictor], indictor)
+        add_number(ax_dict[indictor], f"({chr(97 + indictor_list.index(indictor))})")
     plt.savefig(f"result_data/line_{mode}.png", dpi=300)
 
 

@@ -58,16 +58,16 @@ def merge_indictors(indictor_list: list):
     ]
 
     combined_df = pd.concat(df_list, axis=1)
-    combined_df = combined_df[combined_df.index.get_level_values("year") >= 1989]
+    combined_df = combined_df[combined_df.index.get_level_values("year") >= 1980]
     combined_df.to_csv(get_origin_result_data_path("all"), float_format="%.2f")
     return combined_df
 
 
 if __name__ == "__main__":
     # calculate_indictors(indictor_list)
-    df = merge_post_process_indictors(indictor_list)
-    process_outlier_grid_all(df)
-    df = merge_indictors(indictor_list)
+    # df = merge_post_process_indictors(indictor_list)
+    # process_outlier_grid_all(df)
+    # df = merge_indictors(indictor_list)
     
     # df.groupby(["lat", "lon"]).mean().to_csv(
     #     get_origin_result_data_path("all_mean"), float_format="%.2f"
