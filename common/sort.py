@@ -8,4 +8,8 @@ def sort_by_contry(df: pd.DataFrame) -> pd.DataFrame:
     else:
         copy_df = df.copy()
     copy_df['order_key'] = copy_df['name'].map(country_order)
-    return copy_df.sort_values(by='order_key', na_position='last').drop('order_key', axis=1)
+    if 'year' in copy_df.columns:
+        by = ["order_key", "year"]
+    else:
+        by = ["order_key"]
+    return copy_df.sort_values(by=by, na_position='last').drop('order_key', axis=1)
