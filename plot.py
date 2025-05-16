@@ -409,18 +409,19 @@ def calculate_slope(df: pd.DataFrame):
     return slope_result
 
 
-def map_plot(indictor_list: list):
+def map_plot(indictor_list: list, col = 3):
     point_df = pd.read_csv(get_outlier_result_data_path("all"))
     slope = calculate_slope(point_df)
     slope = add_region_latlon(slope)
 
     csv_path = get_origin_result_data_path("all_mean")
     df = pd.read_csv(csv_path)
-    fig = plt.figure(figsize=(24, 24))
+    fig = plt.figure(figsize=(24, 48))
     i = 0
+    row = len(indictor_list) // col + (1 if len(indictor_list) % col != 0 else 0)
     for indictor in indictor_list:
         module = import_indictor(indictor)
-        ax = fig.add_subplot(4, 3, i + 1, projection=target_crs)
+        ax = fig.add_subplot(row, col, i + 1, projection=target_crs)
         module.draw(df, ax)
 
         if hasattr(module, "unit"):

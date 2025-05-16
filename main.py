@@ -17,17 +17,18 @@ local_mode = mode
 def calculate_indictors(indictor_list: list):
     for indictor in indictor_list:
         target = get_origin_result_data_path(indictor)
-        # if use_cache and Path(target).exists():
-        #     info(f"{indictor} already exists")
-        #     continue
+        print(target)
+        if use_cache and Path(target).exists():
+            info(f"{indictor} already exists")
+            continue
 
         module = import_indictor(indictor)
         if hasattr(module, "calculate"):
-            #try:
+            try:
                 module.calculate()
                 info(f"{indictor} calculate success")
-            #except Exception as e:
-            #    error(f"Error executing {indictor}: {e}")
+            except Exception as e:
+               error(f"Error executing {indictor}: {e}")
         else:
             warn(f"Function 'calculate' not found in {indictor}")
 
@@ -64,7 +65,7 @@ def merge_indictors(indictor_list: list):
 
 
 if __name__ == "__main__":
-    # calculate_indictors(indictor_list)
+    calculate_indictors(indictor_list)
     df = merge_post_process_indictors(indictor_list)
     process_outlier_grid_all(df)
     df = merge_indictors(indictor_list)
@@ -72,9 +73,9 @@ if __name__ == "__main__":
     df.groupby(["lat", "lon"]).mean().to_csv(
         get_origin_result_data_path("all_mean"), float_format="%.2f"
     )
-    # map_plot(indictor_list)
-    post_process=True
-    if mode != "era5":
-        process_delta_change_all(post_process=post_process)
-        line_plot(indictor_list, post_process=post_process)
-  
+    map_plot(indictor_list)
+    # post_process=True
+    # if mode != "era5":
+    #     process_delta_change_all(post_process=post_process)
+    #     line_plot(indictor_list, post_process=post_process)
+    

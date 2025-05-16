@@ -7,14 +7,24 @@ indictor_list = [
     "hur",
     "gdd",
     "pr",
+    "cdd",
     "cwd",
     "r10",
+    "r20",
     "r95p",
+    "sdii",
     "rx1day",
+    "rx5day",
+    "tn10p",
     "tn90p",
+    "tx10p",
     "tx90p",
+    "tnn",
     "txx",
     "fd",
+    "id",
+    "dtr",
+    "csdi"
 ]
 
 country_list = [
@@ -135,5 +145,5 @@ pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
 
-mode = "ssp126"
-base_mode = "ssp585"
+mode = "era5"
+base_mode = "era5"
