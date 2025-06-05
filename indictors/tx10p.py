@@ -26,7 +26,7 @@ def process_tx10p(ds: xr.Dataset):
 
 
 def draw(df: pd.DataFrame, ax=None):
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
+    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap, levels=10)
     add_title(ax, f"TX10p (${unit}$)")
 
 def calculate(process: bool = True):

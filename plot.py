@@ -153,7 +153,7 @@ def clip_df_data(df: pd.DataFrame, gdf: gpd.GeoDataFrame = None):
 
 
 def draw_latlon_map(
-    df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm", ax=None
+    df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm", ax=None, levels=15
 ):
     gdf = gpd.read_file(province_border_geojson)
     (minx, miny, maxx, maxy) = get_bounds(gdf, margin=0.25)
@@ -175,7 +175,7 @@ def draw_latlon_map(
     draw_border(ax, gdf=gdf)
     draw_north_arrow(ax)
     draw_line(ax)
-    contour = ax.contourf(LON, LAT, VALUE, levels=15, cmap=cmap, transform=gdf_crs)
+    contour = ax.contourf(LON, LAT, VALUE, levels=levels, cmap=cmap, transform=gdf_crs)
 
     if clip:
         geom = ax.projection.project_geometry(gdf.geometry.unary_union, gdf_crs)
