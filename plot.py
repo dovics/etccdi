@@ -390,9 +390,20 @@ def draw_line(ax: plt.Axes):
 
     ax.add_feature(shape_feature)
 
-
-def calculate_slope(df: pd.DataFrame):
-    def process_slope(county_df: pd.DataFrame):
+def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
+    def process_slope_by_yue_wang_mk(county_df: pd.DataFrame):
+        import pymannkendall as mk
+        result = pd.Series()
+        for c in county_df.columns:
+            if c == "year" or c == "name":
+                continue
+            mk_result = mk.yue_wang_modification_test(county_df[c])
+            result[c] = round(mk_result.slope * 10, 2)
+            result[c + "_up"] = mk_result.h
+            result[c + "_sign"] = mk_result.p < 0.05
+        return 
+    
+    def process_slope_by_linregress(county_df: pd.DataFrame):
         result = pd.Series()
         for c in county_df.columns:
             if c == "year":
@@ -404,10 +415,15 @@ def calculate_slope(df: pd.DataFrame):
             result[c + "_sign"] = line.pvalue < 0.05
         return result
 
+    if method == "yue_wang_mk":
+        process_slope = process_slope_by_yue_wang_mk
+    elif method == "linregress":
+        process_slope = process_slope_by_linregress
+    else:
+        raise ValueError("method not support")
+    
     slope_result = df.groupby("name").apply(process_slope)
-
     return slope_result
-
 
 def map_plot(indictor_list: list, col = 3):
     point_df = pd.read_csv(get_outlier_result_data_path("all"))
