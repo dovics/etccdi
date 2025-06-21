@@ -22,9 +22,9 @@ indictor_list = [
     "tnn",
     "txx",
     "fd",
-    "id",
+    #"id",
     "dtr",
-    "csdi"
+    #"csdi"
 ]
 
 country_list = [
@@ -119,10 +119,10 @@ intermediate_data_dir = "intermediate_data"
 
 period_start = "10-01"
 period_end = "06-30"
-start_year = 1980
-end_year = 2023
-# start_year = 2015
-# end_year = 2100
+# start_year = 1980
+# end_year = 2023
+start_year = 2015
+end_year = 2100
 base_start_year = 1961
 base_end_year = 1990
 
@@ -145,5 +145,5 @@ pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
 
-mode = "era5"
+mode = "ssp370"
 base_mode = "era5"

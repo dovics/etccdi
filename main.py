@@ -65,17 +65,17 @@ def merge_indictors(indictor_list: list):
 
 
 if __name__ == "__main__":
-    # calculate_indictors(indictor_list)
-    # df = merge_post_process_indictors(indictor_list)
-    # process_outlier_grid_all(df)
-    # df = merge_indictors(indictor_list)
+    calculate_indictors(indictor_list)
+    df = merge_post_process_indictors(indictor_list)
+    process_outlier_grid_all(df)
+    df = merge_indictors(indictor_list)
     
-    # df.groupby(["lat", "lon"]).mean().to_csv(
-    #     get_origin_result_data_path("all_mean"), float_format="%.2f"
-    # )
+    df.groupby(["lat", "lon"]).mean().to_csv(
+        get_origin_result_data_path("all_mean"), float_format="%.2f"
+    )
     map_plot(indictor_list)
-    # post_process=True
-    # if mode != "era5":
-    #     process_delta_change_all(post_process=post_process)
-    #     line_plot(indictor_list, post_process=post_process)
+    post_process=True
+    if mode != "era5":
+        process_delta_change_all(post_process=post_process)
+        line_plot(indictor_list, post_process=post_process)
     

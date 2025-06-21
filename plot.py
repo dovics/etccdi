@@ -401,7 +401,7 @@ def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
             result[c] = round(mk_result.slope * 10, 2)
             result[c + "_up"] = mk_result.h
             result[c + "_sign"] = mk_result.p < 0.05
-        return 
+        return result
     
     def process_slope_by_linregress(county_df: pd.DataFrame):
         result = pd.Series()
@@ -482,10 +482,10 @@ mode_color_map = {
 
 
 def line_plot(indictor_list: list, delta_change=True, post_process=False):
-    fig = plt.figure(figsize=(24, 24))
+    fig = plt.figure(figsize=(40, 24))
     ax_dict = {}
     for indictor in indictor_list:
-        ax_dict[indictor] = fig.add_subplot(4, 3, indictor_list.index(indictor) + 1)
+        ax_dict[indictor] = fig.add_subplot(4, 5, indictor_list.index(indictor) + 1)
         add_title(ax_dict[indictor], indictor)
         add_number(ax_dict[indictor], f"({chr(97 + indictor_list.index(indictor))})")
 
