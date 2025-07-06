@@ -18,6 +18,7 @@ xclim.set_options(data_validation="log")
 indicator_name = "cdd"
 unit = "d"
 default_value = 10
+show_name = "CDD"
 
 
 # 日降水量 < 1 mm 持续天数最大值
@@ -30,7 +31,8 @@ def process_cdd(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    add_title(ax, f"CDD (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

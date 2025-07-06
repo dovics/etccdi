@@ -19,6 +19,8 @@ base_ds = merge_base_years_period("pr", full_year=False)
 r95 = percentile_doy(base_ds["pr"], per=95).sel(percentiles=95)
 indicator_name = "r95p"
 unit = "d"
+show_name = "R95p"
+
 
 def process_r95p(ds: xr.Dataset):
     result = days_over_precip_thresh(ds["pr"], r95, freq="YS")
@@ -28,7 +30,8 @@ def process_r95p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    add_title(ax, f"R95p (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

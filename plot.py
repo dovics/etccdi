@@ -152,10 +152,34 @@ def clip_df_data(df: pd.DataFrame, gdf: gpd.GeoDataFrame = None):
     ]
 
 
+def draw_base_map(gdf: gpd.GeoDataFrame = None, clip=True, ax=None):
+    if gdf is None:
+        gdf = gpd.read_file(province_border_geojson)
+
+    (minx, miny, maxx, maxy) = get_bounds(gdf, margin=0.25)
+    ax.set_extent([minx + 1, maxx - 0.5, miny + 2, maxy - 2], crs=gdf_crs)
+
+    draw_border(ax, gdf=gdf)
+    draw_north_arrow(ax)
+    draw_line(ax)
+    add_scaler(ax, length=200)
+
+
 def draw_latlon_map(
-    df: pd.DataFrame, variable: str, clip=True, cmap="coolwarm", ax=None, levels=15
+    df: pd.DataFrame,
+    variable: str,
+    clip=True,
+    cmap="coolwarm",
+    ax=None,
+    levels=15,
+    show_colorbar=True,
+    country_list=None,
 ):
+    if ax is None:
+        _, ax = new_plot(subregions=country_list)
+
     gdf = gpd.read_file(province_border_geojson)
+    draw_base_map(gdf, clip=clip, ax=ax)
     (minx, miny, maxx, maxy) = get_bounds(gdf, margin=0.25)
     df = df[
         (df["lat"] >= miny)
@@ -168,24 +192,15 @@ def draw_latlon_map(
     LON, LAT = np.meshgrid(np.unique(lons), np.unique(lats))
     VALUE = df.pivot(index="lat", columns="lon", values=variable).values
 
-    if ax is None:
-        _, ax = new_plot(subregions=country_list)
-
-    ax.set_extent([minx + 1, maxx - 0.5, miny + 2, maxy - 2], crs=gdf_crs)
-    draw_border(ax, gdf=gdf)
-    draw_north_arrow(ax)
-    draw_line(ax)
     contour = ax.contourf(LON, LAT, VALUE, levels=levels, cmap=cmap, transform=gdf_crs)
-
     if clip:
         geom = ax.projection.project_geometry(gdf.geometry.unary_union, gdf_crs)
         path = Path.make_compound_path(*geos_to_path(geom))
         for col in ax.collections:
             col.set_clip_path(path, ax.transData)
 
-    add_scaler(ax, length=200)
-
-    plt.colorbar(contour, ax=ax, pad=0.05, fraction=0.03)
+    if show_colorbar:
+        plt.colorbar(contour, ax=ax, pad=0.05, fraction=0.03)
 
 
 def add_point_map(
@@ -194,6 +209,7 @@ def add_point_map(
     ax: plt.Axes = None,
     unit=None,
     legend_location=None,
+    color=False,
 ):
     symbols = {
         (True, False): "△",
@@ -201,6 +217,17 @@ def add_point_map(
         (False, False): "▽",
         (False, True): "▼",
     }
+
+    if color:
+        colors = {
+            True: "blue",  #  increase
+            False: "red",  # decrease
+        }
+    else:
+        colors = {
+            True: "k",  # increase
+            False: "k",  # decrease
+        }
 
     for (up, sign), symbol in symbols.items():
         subset = df[(df[variable + "_up"] == up) & (df[variable + "_sign"] == sign)]
@@ -210,6 +237,7 @@ def add_point_map(
                 xy=(row["lon"], row["lat"]),
                 transform=gdf_crs,
                 fontsize="small",
+                color=colors[up],
             )
 
             # right
@@ -239,8 +267,8 @@ def add_point_map(
             marker="^",
             color="w",
             label="Significant increase",
-            markeredgecolor="k",
-            markerfacecolor="k",
+            markeredgecolor=colors[True],
+            markerfacecolor=colors[True],
             markersize=6,
         ),
         plt.Line2D(
@@ -249,7 +277,7 @@ def add_point_map(
             marker="^",
             color="w",
             label="Increase",
-            markeredgecolor="k",
+            markeredgecolor=colors[True],
             markerfacecolor="none",
             markersize=6,
         ),
@@ -259,8 +287,8 @@ def add_point_map(
             marker="v",
             color="w",
             label="Significant decrease",
-            markeredgecolor="k",
-            markerfacecolor="k",
+            markeredgecolor=colors[False],
+            markerfacecolor=colors[False],
             markersize=6,
         ),
         plt.Line2D(
@@ -269,7 +297,7 @@ def add_point_map(
             marker="v",
             color="w",
             label="Decrease",
-            markeredgecolor="k",
+            markeredgecolor=colors[False],
             markerfacecolor="none",
             markersize=6,
         ),
@@ -301,7 +329,7 @@ def add_point_map(
     )
 
 
-def add_title(ax: plt.Axes, title: str, location=(0.025, 0.95)):
+def add_title(ax: plt.Axes, title: str, fontsize="large", location=(0.025, 0.95), rotation=0):
     minx, maxx = ax.get_xlim()
     miny, maxy = ax.get_ylim()
     ylen = maxy - miny
@@ -312,8 +340,9 @@ def add_title(ax: plt.Axes, title: str, location=(0.025, 0.95)):
         s=title,
         ha="left",
         va="center",
-        fontsize="large",
+        fontsize=fontsize,
         fontweight="bold",
+        rotation=rotation,
     )
 
 
@@ -390,9 +419,11 @@ def draw_line(ax: plt.Axes):
 
     ax.add_feature(shape_feature)
 
+
 def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
     def process_slope_by_yue_wang_mk(county_df: pd.DataFrame):
         import pymannkendall as mk
+
         result = pd.Series()
         for c in county_df.columns:
             if c == "year" or c == "name":
@@ -402,7 +433,7 @@ def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
             result[c + "_up"] = mk_result.h
             result[c + "_sign"] = mk_result.p < 0.05
         return result
-    
+
     def process_slope_by_linregress(county_df: pd.DataFrame):
         result = pd.Series()
         for c in county_df.columns:
@@ -421,11 +452,12 @@ def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
         process_slope = process_slope_by_linregress
     else:
         raise ValueError("method not support")
-    
+
     slope_result = df.groupby("name").apply(process_slope)
     return slope_result
 
-def map_plot(indictor_list: list, col = 3):
+
+def map_plot(indictor_list: list, col=3):
     point_df = pd.read_csv(get_outlier_result_data_path("all"))
     slope = calculate_slope(point_df)
     slope = add_region_latlon(slope)
@@ -489,7 +521,6 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False):
         add_title(ax_dict[indictor], indictor)
         add_number(ax_dict[indictor], f"({chr(97 + indictor_list.index(indictor))})")
 
-
     for local_mode in mode_list:
         if local_mode != "era5" and delta_change:
             df = pd.read_csv(
@@ -506,11 +537,14 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False):
                 get_origin_result_data_path_by_mode("all", local_mode=local_mode),
                 index_col=["year"],
             )
-            
+
             df = clip_df_data(df)
-            
-        mean_df = df.drop(columns="name").groupby("year").mean()
-        
+        df = df.drop(columns="name").groupby("year")
+        percentile_10 = df.quantile(0.1).rolling(window=5).mean()
+        percentile_90 = df.quantile(0.9).rolling(window=5).mean()
+
+        mean_df = df.mean()
+
         for indictor in indictor_list:
             mean_df[indictor].plot(
                 x="year",
@@ -519,12 +553,23 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False):
                 color=mode_color_map[local_mode],
                 label=local_mode,
             )
-            mean_df[indictor].to_csv(f"result_data/mean/{indictor}_{local_mode}.csv", index=False)
-        mean_df.to_csv(f"result_data/mean/all_{local_mode}.csv", index=True, float_format="%.2f")
-  
-    for indictor in indictor_list:
-        add_title(ax_dict[indictor], indictor)
-        add_number(ax_dict[indictor], f"({chr(97 + indictor_list.index(indictor))})")
+
+            years = mean_df.index.values
+            ax_dict[indictor].fill_between(
+                years,
+                percentile_10[indictor],
+                percentile_90[indictor],
+                color=mode_color_map[local_mode],
+                alpha=0.2,
+                label=f"{local_mode} 10%-90% range",
+            )
+            mean_df[indictor].to_csv(
+                f"result_data/mean/{indictor}_{local_mode}.csv", index=False
+            )
+        mean_df.to_csv(
+            f"result_data/mean/all_{local_mode}.csv", index=True, float_format="%.2f"
+        )
+
     plt.savefig(f"result_data/line_{mode}.png", dpi=300)
 
 

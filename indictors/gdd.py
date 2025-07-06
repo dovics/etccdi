@@ -13,7 +13,9 @@ from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
 indicator_name = "gdd"
+show_name = "GDD"
 unit = "°C \cdot d"
+
 
 def process_gdd(ds: xr.Dataset):
     result = growing_degree_days(ds["tas"], thresh="0 degC", freq="YS")
@@ -21,9 +23,17 @@ def process_gdd(ds: xr.Dataset):
     return result.sum(dim="time")
 
 
-def draw(df: pd.DataFrame, ax=None):
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    add_title(ax, f"GDD (${unit}$)")
+def draw(df: pd.DataFrame, ax=None, show_colorbar=True):
+    draw_latlon_map(
+        df,
+        indicator_name,
+        clip=True,
+        ax=ax,
+        cmap=tas_colormap,
+        show_colorbar=show_colorbar,
+    )
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

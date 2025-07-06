@@ -15,6 +15,8 @@ from config import pr_colormap
 default_value = 0
 indicator_name = "rx5day"
 unit = "mm"
+show_name = "RX5day"
+
 
 def process_rx5day(ds: xr.Dataset):
     ds = reindex_ds_to_all_year(ds, default_value)
@@ -25,7 +27,8 @@ def process_rx5day(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    add_title(ax, f"RX5day (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

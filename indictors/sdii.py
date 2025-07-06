@@ -14,7 +14,7 @@ from config import pr_colormap
 
 indicator_name = "sdii"
 default_value = 0
-
+show_name = "SDII"
 # 非闰年
 # 调整前    调整后
 # 10/01 -> 01/01
@@ -32,6 +32,7 @@ default_value = 0
 default_value = 0
 unit = "mm \cdot d^{-1}"
 
+
 def process_sdii(ds: xr.Dataset):
     ds = reindex_ds_to_all_year(ds, default_value)
     result = daily_pr_intensity(ds["pr"])
@@ -41,7 +42,8 @@ def process_sdii(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    add_title(ax, f"SDII (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

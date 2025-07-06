@@ -13,6 +13,8 @@ from config import tas_colormap
 indicator_name = "rsds"
 
 unit = "MJ\cdot m^{-2}"
+show_name = "SR"
+
 
 def process_rsds(ds: xr.Dataset) -> xr.DataArray:
     rsds = ds["rsds"].sum(dim="time")
@@ -20,9 +22,17 @@ def process_rsds(ds: xr.Dataset) -> xr.DataArray:
     return rsds
 
 
-def draw(df: pd.DataFrame, ax=None):
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    add_title(ax, f"SR (${unit}$)")
+def draw(df: pd.DataFrame, ax=None, show_colorbar=True):
+    draw_latlon_map(
+        df,
+        indicator_name,
+        clip=True,
+        ax=ax,
+        cmap=tas_colormap,
+        show_colorbar=show_colorbar,
+    )
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

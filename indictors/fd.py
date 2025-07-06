@@ -1,4 +1,3 @@
-
 import xarray as xr
 
 import pandas as pd
@@ -16,6 +15,8 @@ from config import tas_colormap
 # FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0oC.
 indicator_name = "fd"
 unit = "d"
+show_name = "FD"
+
 
 def process_fd(ds: xr.Dataset) -> xr.DataArray:
     fd = (ds["tasmin"] - 273.15 < 0).sum(dim="time")
@@ -25,7 +26,8 @@ def process_fd(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    add_title(ax, f"FD (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

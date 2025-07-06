@@ -2,6 +2,21 @@
 import os
 import matplotlib.pyplot as plt
 
+long_term_indictor_list = ["gdd", "pr", "hur", "rsds"]
+
+temperature_indictor_list = [
+    "tnn",
+    "txx",
+    "tn90p",
+    "tx90p",
+    "tn10p",
+    "tx10p",
+    "fd",
+    "dtr",
+]
+
+rainfall_indictor_list = ["rx1day", "rx5day", "r10", "r95p", "sdii", "cdd", "cwd"]
+
 indictor_list = [
     "rsds",
     "hur",
@@ -22,9 +37,9 @@ indictor_list = [
     "tnn",
     "txx",
     "fd",
-    #"id",
+    # "id",
     "dtr",
-    #"csdi"
+    # "csdi"
 ]
 
 country_list = [
@@ -70,6 +85,50 @@ country_list = [
     "于田县",
 ]
 
+zone_list = {
+    "裕民县": 0,
+    "额敏县": 0,
+    "伊宁县": 0,
+    "察布查尔锡伯自治县": 0,
+    "霍城县": 0,
+    "巩留县": 0,
+    "温泉县": 0,
+    "尼勒克县": 0,
+    "新源县": 0,
+    "呼图壁县": 1,
+    "玛纳斯县": 1,
+    "奇台县": 1,
+    "吉木萨尔县": 1,
+    "木垒哈萨克自治县": 1,
+    "拜城县": 1,
+    "轮台县": 2,
+    "且末县": 2,
+    "温宿县": 2,
+    "沙雅县": 2,
+    "新和县": 2,
+    "乌什县": 2,
+    "阿瓦提县": 2,
+    "柯坪县": 2,
+    "阿克陶县": 3,
+    "疏附县": 3,
+    "疏勒县": 3,
+    "英吉沙县": 3,
+    "泽普县": 3,
+    "莎车县": 3,
+    "叶城县": 3,
+    "麦盖提县": 3,
+    "岳普湖县": 3,
+    "伽师县": 3,
+    "巴楚县": 3,
+    "和田县": 3,
+    "墨玉县": 3,
+    "皮山县": 3,
+    "洛浦县": 3,
+    "策勒县": 3,
+    "于田县": 3,
+}
+
+
 cmip6_model_list = [
     "ACCESS-CM2",
     "ACCESS-ESM1-5",
@@ -96,13 +155,25 @@ mode_list = [
     "ssp370",
     "ssp585",
 ]  # "ssp126", "ssp245", "ssp370", "ssp585"
+
+mode_show_name = {
+    "era5": "Historical",
+    "ssp126": "SSP126",
+    "ssp245": "SSP245",
+    "ssp370": "SSP370",
+    "ssp585": "SSP585",
+}
+
 downscaling_methods = {
-    # "rsds": "gard",
-    # "hur": "gard",
-    # "tas": "bcsd",
-    # "tasmax": "bcsd",
-    # "tasmin": "bcsd",
-    # "pr": "bcsd",
+    "rsds": "gard",
+    "hur": "gard",
+    "tas": "bcsd",
+    "tasmax": "bcsd",
+    "tasmin": "bcsd",
+    "pr": "bcsd",
+}
+
+deltachange_methods = {
     "rsds": "none",
     "hur": "dcm",
     "hurs": "dcm",
@@ -145,5 +216,5 @@ pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
 
-mode = "ssp585"
+mode = "ssp245"
 base_mode = "era5"

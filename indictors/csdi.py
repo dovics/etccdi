@@ -20,6 +20,7 @@ from config import tas_colormap
 indicator_name = "csdi"
 unit = "d"
 default_value = 999
+show_name = "CSDI"
 
 base_ds = merge_base_years_period(
     "tasmin", reindex=True, full_year=False, default_value=default_value
@@ -37,7 +38,8 @@ def process_csdi(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    add_title(ax, f"CSDI (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

@@ -18,7 +18,9 @@ base_ds = merge_base_years_period("tasmax", full_year=False)
 t90 = percentile_doy(base_ds["tasmax"], per=90, window=5).sel(percentiles=90)
 
 indicator_name = "tx90p"
+show_name = "TX90p"
 unit = "d"
+
 
 def process_tx90p(ds: xr.Dataset):
     result = tx90p(ds["tasmax"], t90, freq="YS")
@@ -28,7 +30,8 @@ def process_tx90p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    add_title(ax, f"TX90p (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

@@ -15,6 +15,8 @@ from config import tas_colormap
 
 indicator_name = "dtr"
 unit = "°C"
+show_name = "DTR"
+
 
 def process_dtr(ds: xr.Dataset) -> xr.DataArray:
     ds = ds.sortby("time")
@@ -25,8 +27,9 @@ def process_dtr(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    add_title(ax, f"DTR (${unit}$)")
-    
+    add_title(ax, f"{show_name} (${unit}$)")
+
+
 def calculate(process: bool = True):
     if process:
         range_data_period(["tasmax", "tasmin"], process_dtr, mean_by_region)

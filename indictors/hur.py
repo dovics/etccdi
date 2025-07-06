@@ -14,6 +14,7 @@ from xclim.indicators.atmos import relative_humidity_from_dewpoint
 
 # HUR, Relative humidity: Daily mean relative humidity.
 indicator_name = "hur"
+show_name = "RH"
 unit = "\%"
 
 
@@ -24,16 +25,24 @@ def process_hur_era5(ds: xr.Dataset) -> xr.DataArray:
     result.name = indicator_name
     return result
 
+
 def process_hur_cmip6(ds: xr.Dataset) -> xr.DataArray:
     ds = ds.rename({"hurs": "hur"})
     hur = ds["hur"].mean(dim="time")
     hur.name = indicator_name
-    return hur 
-    
+    return hur
 
-def draw(df: pd.DataFrame, ax=None):
-    draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    add_title(ax, f"RH (${unit}$)")
+
+def draw(df: pd.DataFrame, ax=None, show_colorbar=True):
+    draw_latlon_map(
+        df,
+        indicator_name,
+        clip=True,
+        ax=ax,
+        cmap=tas_colormap,
+        show_colorbar=show_colorbar,
+    )
+    add_title(ax, f"{show_name} (${unit}$)")
 
 
 def calculate(process: bool = True):

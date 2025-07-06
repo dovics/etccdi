@@ -18,6 +18,8 @@ t10 = percentile_doy(base_ds["tasmax"], per=10, window=5).sel(percentiles=10)
 
 indicator_name = "tx10p"
 unit = "d"
+show_name = "TX10p"
+
 
 def process_tx10p(ds: xr.Dataset):
     result = tx10p(ds["tasmax"], t10, freq="YS")
@@ -27,7 +29,8 @@ def process_tx10p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap, levels=10)
-    add_title(ax, f"TX10p (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

@@ -13,6 +13,8 @@ from config import tas_colormap
 
 indicator_name = "txx"
 unit = "°C"
+show_name = "TXx"
+
 
 def process_txx(ds: xr.Dataset):
     ds["tasmax"].values -= 273.15
@@ -26,7 +28,8 @@ def process_txx(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    add_title(ax, f"TXx (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:

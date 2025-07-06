@@ -25,7 +25,7 @@ from config import (
     use_cache,
     cmip6_data_dir,
     cmip6_model_list,
-    downscaling_methods,
+    deltachange_methods,
     mode,
     base_mode,
 )
@@ -63,7 +63,7 @@ def load_cmip6_data(variable: str, year: str, local_mode: str) -> xr.Dataset:
             Path(cmip6_data_dir)
             .joinpath(model)
             .joinpath(
-                f"{variable}_{local_mode}_{model}_{downscaling_methods[variable]}.zarr"
+                f"{variable}_{local_mode}_{model}_{deltachange_methods[variable]}.zarr"
             )
         )
         ds = xr.open_zarr(path)    

@@ -18,6 +18,8 @@ t90 = percentile_doy(base_ds["tasmin"], per=90, window=5).sel(percentiles=90)
 
 indicator_name = "tn90p"
 unit = "d"
+show_name = "TN90p"
+
 
 def process_tn90p(ds: xr.Dataset):
     result = tn90p(ds["tasmin"], t90, freq="YS")
@@ -27,7 +29,8 @@ def process_tn90p(ds: xr.Dataset):
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=tas_colormap)
-    add_title(ax, f"TN90p (${unit}$)")
+    add_title(ax, f"{show_name} (${unit}$)")
+
 
 def calculate(process: bool = True):
     if process:
