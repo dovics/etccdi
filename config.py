@@ -145,5 +145,5 @@ pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
 
-mode = "ssp370"
+mode = "ssp585"
 base_mode = "era5"

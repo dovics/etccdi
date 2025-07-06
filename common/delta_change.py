@@ -46,7 +46,10 @@ def delta_change_by_scale(
         f"start delta change for {variable} base {start_year} to {end_year}, scale_factor {scale_factor}. offset {offset}"
     )
     result = df[variable] * scale_factor * scale + offset
-    return result.abs()
+    if base_max < 0:
+        return -1 * result.abs()
+    else:
+        return result.abs()
 
 
 def delta_change_by_mean(
@@ -101,7 +104,7 @@ def delta_change_indictor(
     df: pd.DataFrame, base_df: pd.DataFrame, mode: str
 ) -> pd.DataFrame:
     result = df.copy()
-    for indictor in ["rsds", "hur", "pr", "cwd", "cdd", "r10", "r20", "r95p","sdii", "rx1day", "rx5day", "tn10p", "tx10p", "tnn"]:
+    for indictor in ["rsds", "hur", "pr", "cwd", "cdd", "r10", "r20", "r95p","sdii", "rx1day", "rx5day", "tnn"]:
         if indictor in df.columns:
             result[indictor] = delta_change_by_scale(df, base_df, indictor)
 
