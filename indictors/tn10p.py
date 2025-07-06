@@ -13,13 +13,17 @@ from utils import (
 from plot import draw_latlon_map, add_title
 from config import tas_colormap
 
-base_ds = merge_base_years_period("tasmin", full_year=False)
-t10 = percentile_doy(base_ds["tasmin"], per=10, window=5).sel(percentiles=10)
+base_ds = None
+t10 = None
 
 indicator_name = "tn10p"
 unit = "d"
 show_name = "TN10p"
 
+def before_process():
+    global base_ds, t10
+    base_ds = merge_base_years_period("tasmin", full_year=False)
+    t10 = percentile_doy(base_ds["tasmin"], per=10, window=5).sel(percentiles=10)
 
 def process_tn10p(ds: xr.Dataset):
     result = tn10p(ds["tasmin"], t10, freq="YS")
@@ -34,6 +38,7 @@ def draw(df: pd.DataFrame, ax=None):
 
 def calculate(process: bool = True):
     if process:
+        before_process()
         range_data_period("tasmin", process_tn10p, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)

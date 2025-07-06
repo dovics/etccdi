@@ -22,10 +22,15 @@ unit = "d"
 default_value = 999
 show_name = "CSDI"
 
-base_ds = merge_base_years_period(
-    "tasmin", reindex=True, full_year=False, default_value=default_value
-)
-p10 = percentile_doy(base_ds["tasmin"], per=10).sel(percentiles=10)
+base_ds = None
+p10 = None
+
+def before_process():
+    global base_ds, p10
+    base_ds = merge_base_years_period(
+        "tasmin", reindex=True, full_year=False, default_value=default_value
+    )
+    p10 = percentile_doy(base_ds["tasmin"], per=10).sel(percentiles=10)
 
 
 # 日最低气温小于第10百分位数时，至少连续6天的年天数
@@ -43,6 +48,7 @@ def draw(df: pd.DataFrame, ax=None):
 
 def calculate(process: bool = True):
     if process:
+        before_process()
         range_data_period("tasmin", process_csdi, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)

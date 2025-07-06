@@ -82,7 +82,7 @@ def map_plot_multi_mode(
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.savefig(target, dpi=300)
 
-
+rolling_window = 5
 def line_plot_by_zone(indictor_list: list, target="result_data/line_by_zone.png"):
     row = 4  # zone count
     col = len(indictor_list)
@@ -114,11 +114,12 @@ def line_plot_by_zone(indictor_list: list, target="result_data/line_by_zone.png"
             lambda x: zone_list[x] if x in zone_list else "Unknown"
         )
 
-        for zone, zone_df in df.groupby("zone"):
+        for zone in range(row):
+            zone_df = df[df["zone"] == zone]
             zone_df = zone_df.drop(columns="name").groupby("year")
-            percentile_10 = zone_df.quantile(0.1).rolling(window=5).mean()
-            percentile_90 = zone_df.quantile(0.9).rolling(window=5).mean()
-            mean_df = zone_df.mean()
+            percentile_10 = zone_df.quantile(0.1).rolling(window=rolling_window).mean()
+            percentile_90 = zone_df.quantile(0.9).rolling(window=rolling_window).mean()
+            mean_df = zone_df.mean().rolling(window=rolling_window).mean()
             for indictor in indictor_list:
                 ax = ax_dict[zone][indictor]
                 mean_df[indictor].plot(
@@ -157,11 +158,11 @@ def line_plot_by_zone(indictor_list: list, target="result_data/line_by_zone.png"
     plt.savefig(target, dpi=300)
 
 if __name__ == "__main__":
-    map_plot_multi_mode(long_term_indictor_list, target="result_data/map_long_term.png")
-    map_plot_multi_mode(
-        temperature_indictor_list, target="result_data/map_temperature.png"
-    )
-    map_plot_multi_mode(rainfall_indictor_list, target="result_data/map_rainfall.png")
+    # map_plot_multi_mode(long_term_indictor_list, target="result_data/map_long_term.png")
+    # map_plot_multi_mode(
+    #     temperature_indictor_list, target="result_data/map_temperature.png"
+    # )
+    # map_plot_multi_mode(rainfall_indictor_list, target="result_data/map_rainfall.png")
 
     line_plot_by_zone(long_term_indictor_list, target="result_data/line_long_term.png")
     line_plot_by_zone(

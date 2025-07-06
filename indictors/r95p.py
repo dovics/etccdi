@@ -15,12 +15,16 @@ from utils import (
 from plot import draw_latlon_map, add_title
 from config import pr_colormap
 
-base_ds = merge_base_years_period("pr", full_year=False)
-r95 = percentile_doy(base_ds["pr"], per=95).sel(percentiles=95)
+base_ds = None
+r95 = None
 indicator_name = "r95p"
 unit = "d"
 show_name = "R95p"
 
+def before_process():
+    global base_ds, r95
+    base_ds = merge_base_years_period("pr", full_year=False)
+    r95 = percentile_doy(base_ds["pr"], per=95).sel(percentiles=95)
 
 def process_r95p(ds: xr.Dataset):
     result = days_over_precip_thresh(ds["pr"], r95, freq="YS")
@@ -35,6 +39,7 @@ def draw(df: pd.DataFrame, ax=None):
 
 def calculate(process: bool = True):
     if process:
+        before_process()
         range_data_period("pr", process_r95p, mean_by_region)
 
     df_post_process = merge_intermediate_post_process(indicator_name)
