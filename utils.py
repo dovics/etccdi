@@ -10,6 +10,7 @@ import pandas as pd
 import geopandas as gpd
 from logutil import info, error
 import importlib.util as importlib
+import zipfile
 
 from config import (
     era5_data_dir,

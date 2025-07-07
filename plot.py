@@ -28,7 +28,7 @@ from utils import (
     import_indictor,
     load_daily_data,
 )
-from config import country_list, target_crs, gdf_crs, mode, mode_list
+from config import zone_list, target_crs, gdf_crs, mode, mode_list, mode_show_name
 
 province_full_geojson = "static/xinjiang_full.json"
 province_border_geojson = "static/xinjiang.json"
@@ -457,12 +457,12 @@ def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
     return slope_result
 
 
-def map_plot(indictor_list: list, col=3):
-    point_df = pd.read_csv(get_outlier_result_data_path("all"))
+def map_plot(indictor_list: list, col=3, local_mode="era5", target=None):
+    point_df = pd.read_csv(get_outlier_result_data_path_by_mode("all", local_mode))
     slope = calculate_slope(point_df)
     slope = add_region_latlon(slope)
 
-    csv_path = get_origin_result_data_path("all_mean")
+    csv_path = get_origin_result_data_path_by_mode("all_mean", local_mode)
     df = pd.read_csv(csv_path)
     fig = plt.figure(figsize=(24, 48))
     i = 0
@@ -484,8 +484,9 @@ def map_plot(indictor_list: list, col=3):
             add_point_map(slope, indictor, ax, legend_location=(0, 0.7))
         add_number(ax, f"({chr(97 + i)})")
         i += 1
-
-    plt.savefig(f"result_data/map_{mode}.png", dpi=300)
+    if target is None:
+        target = f"result_data/map_{local_mode}.png"
+    plt.savefig(target, dpi=300)
 
 
 def drop_unuseful_columns(df: pd.DataFrame):
@@ -513,7 +514,7 @@ mode_color_map = {
 }
 
 
-def line_plot(indictor_list: list, delta_change=True, post_process=False):
+def line_plot(indictor_list: list, delta_change=True, post_process=False, target=None):
     fig = plt.figure(figsize=(40, 24))
     ax_dict = {}
     for indictor in indictor_list:
@@ -526,12 +527,12 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False):
             df = pd.read_csv(
                 get_delta_change_result_data_path_by_mode("all", local_mode=local_mode),
                 index_col=["year"],
-            )
+            ).drop(columns="name")
         elif post_process:
             df = pd.read_csv(
                 get_outlier_result_data_path_by_mode("all", local_mode=local_mode),
                 index_col=["year"],
-            )
+            ).drop(columns="name")
         else:
             df = pd.read_csv(
                 get_origin_result_data_path_by_mode("all", local_mode=local_mode),
@@ -539,7 +540,7 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False):
             )
 
             df = clip_df_data(df)
-        df = df.drop(columns="name").groupby("year")
+        df = df.groupby("year")
         percentile_10 = df.quantile(0.1).rolling(window=5).mean()
         percentile_90 = df.quantile(0.9).rolling(window=5).mean()
 
@@ -567,10 +568,12 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False):
                 f"result_data/mean/{indictor}_{local_mode}.csv", index=False
             )
         mean_df.to_csv(
-            f"result_data/mean/all_{local_mode}.csv", index=True, float_format="%.2f"
+            f"result_data/mean/all_{local_mode}.csv", index=True, float_format="%.2f", columns=indictor_list
         )
 
-    plt.savefig(f"result_data/line_{mode}.png", dpi=300)
+    if target is None:
+        target = "result_data/line.png"
+    plt.savefig(target, dpi=300)
 
 
 def get_common_levels(era5_data: xr.DataArray, cmip6_data: xr.DataArray):
@@ -629,3 +632,133 @@ def draw_compare_map(indictor_list: list, time: str):
         plt.colorbar(era5_contour, ax=era5_ax, pad=0.05, fraction=0.03)
 
     plt.savefig(f"result_data/compare_{time}.png", dpi=300)
+
+def get_filter(all_data):
+    Q1 = np.percentile(all_data, 25)
+    Q3 = np.percentile(all_data, 75)
+    IQR = Q3 - Q1
+    upper_bound = Q3 + 1.5 * IQR
+    lower_bound = Q1 - 1.5 * IQR
+
+    def filter(df, indictor):
+        df.loc[df[indictor] > upper_bound, indictor] = upper_bound
+        df.loc[df[indictor] < lower_bound, indictor] = lower_bound
+        return df
+
+    return filter
+
+
+def map_plot_multi_mode(
+    indictor_list,
+    target="result_data/map_multi_mode.png",
+):
+    slope = {}
+    for mode in mode_list:
+        point_df = pd.read_csv(get_outlier_result_data_path_by_mode("all", mode))
+        slope[mode] = add_region_latlon(calculate_slope(point_df))
+
+    i = 0
+    row = len(indictor_list)
+    col = len(mode_list)
+
+    fig = plt.figure(figsize=(8 * col, 6 * row))
+    for indictor in indictor_list:
+        module = import_indictor(indictor)
+        for mode in mode_list:
+            i += 1
+            ax = fig.add_subplot(row, col, i, projection=target_crs)
+            draw_base_map(ax=ax, clip=True)
+            add_title(ax, f"{module.show_name} (${module.unit}$)")
+
+            add_point_map(
+                slope[mode],
+                indictor,
+                ax,
+                unit=module.unit + "\cdot 10a^{-1}",
+                legend_location=(0, 0.625),
+                color=True,
+            )
+
+            add_number(ax, f"({chr(96 + i)})")
+            if i <= col:
+                add_title(
+                    ax, f"{mode_show_name[mode]}", fontsize=24, location=(0.1, 1.05)
+                )
+
+    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.savefig(target, dpi=300)
+
+rolling_window = 5
+def line_plot_by_zone(indictor_list: list, target="result_data/line_by_zone.png"):
+    row = 4  # zone count
+    col = len(indictor_list)
+    ax_dict = {}
+    fig = plt.figure(figsize=(8 * col, 6 * row))
+
+    for i in range(row):
+        ax_dict[i] = {}
+        for j, indictor in enumerate(indictor_list):
+            index = i * col + j + 1
+            ax_dict[i][indictor] = fig.add_subplot(row, col, index)
+            module = import_indictor(indictor)
+            add_title(ax_dict[i][indictor], module.show_name)
+            add_number(ax_dict[i][indictor], f"({chr(96 + index)})")
+
+    for mode in mode_list:
+        if mode != "era5":
+            df = pd.read_csv(
+                get_delta_change_result_data_path_by_mode("all", local_mode=mode),
+                index_col=["year"],
+            )
+        else:
+            df = pd.read_csv(
+                get_outlier_result_data_path_by_mode("all", local_mode=mode),
+                index_col=["year"],
+            )
+
+        df["zone"] = df["name"].apply(
+            lambda x: zone_list[x] if x in zone_list else "Unknown"
+        )
+
+        for zone in range(row):
+            zone_df = df[df["zone"] == zone]
+            zone_df = zone_df.drop(columns="name").groupby("year")
+            percentile_10 = zone_df.quantile(0.1).rolling(window=rolling_window).mean()
+            percentile_90 = zone_df.quantile(0.9).rolling(window=rolling_window).mean()
+            mean_df = zone_df.mean().rolling(window=rolling_window).mean()
+            for indictor in indictor_list:
+                ax = ax_dict[zone][indictor]
+                mean_df[indictor].plot(
+                    x="year",
+                    y=indictor,
+                    ax=ax,
+                    color=mode_color_map[mode],
+                    label=mode,
+                )
+                years = mean_df.index.values
+                ax.fill_between(
+                    years,
+                    percentile_10[indictor],
+                    percentile_90[indictor],
+                    color=mode_color_map[mode],
+                    alpha=0.2,
+                    label=f"{mode} 10%-90% range",
+                )
+    
+    for i in range(row):
+        for j, indictor in enumerate(indictor_list):
+            module = import_indictor(indictor)
+            add_title(ax_dict[i][indictor], module.show_name)
+            add_number(ax_dict[i][indictor], f"({chr(96 + index)})")
+
+    for i in range(row):
+        add_title(
+            ax_dict[i][indictor_list[0]],
+            f"Zone {i + 1}",
+            fontsize=24,
+            location=(-0.15, 0.5),
+            rotation=90,
+        )
+        
+    plt.subplots_adjust(wspace=0.1, hspace=0)
+    plt.savefig(target, dpi=300)

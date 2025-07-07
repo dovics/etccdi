@@ -7,7 +7,7 @@ from utils import (
 )
 
 from config import use_cache, mode, indictor_list
-from plot import map_plot, line_plot
+from plot import (map_plot, line_plot, map_plot_multi_mode, line_plot_by_zone)
 from common.outlier import process_outlier_grid_all
 from common.reshape import split_data_by_column
 from common.delta_change import process_delta_change_all
@@ -61,21 +61,18 @@ def merge_indictors(indictor_list: list):
     combined_df = pd.concat(df_list, axis=1)
     combined_df = combined_df[combined_df.index.get_level_values("year") >= 1980]
     combined_df.to_csv(get_origin_result_data_path("all"), float_format="%.2f")
+    combined_df.groupby(["lat", "lon"]).mean().to_csv(
+        get_origin_result_data_path("all_mean"), float_format="%.2f"
+    )
     return combined_df
-
-
+            
 if __name__ == "__main__":
-    # calculate_indictors(indictor_list)
-    # df = merge_post_process_indictors(indictor_list)
-    # process_outlier_grid_all(df)
-    # df = merge_indictors(indictor_list)
-    
-    # df.groupby(["lat", "lon"]).mean().to_csv(
-    #     get_origin_result_data_path("all_mean"), float_format="%.2f"
-    # )
-    map_plot(indictor_list)
-    post_process=True
-    if mode != "era5":
-        # process_delta_change_all(post_process=post_process)
-        line_plot(indictor_list, post_process=post_process)
-    
+    calculate_indictors(indictor_list)
+    merge_indictors(indictor_list)
+    df = merge_post_process_indictors(indictor_list)
+    if mode == "era5":
+        process_outlier_grid_all(df)
+    else:
+        process_delta_change_all(post_process=True)
+    map_plot(indictor_list, local_mode=mode)
+    line_plot(indictor_list, post_process=True)

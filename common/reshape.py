@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from common.sort import sort_by_contry
-
+from config import result_data_dir
 def split_data_by_column(df: pd.DataFrame, path_prefix = "result_data", index = "name"):
     if Path(path_prefix).exists() == False:
         Path(path_prefix).mkdir()

@@ -2,20 +2,11 @@
 import os
 import matplotlib.pyplot as plt
 
-long_term_indictor_list = ["gdd", "pr", "hur", "rsds"]
-
-temperature_indictor_list = [
-    "tnn",
-    "txx",
-    "tn90p",
-    "tx90p",
-    "tn10p",
-    "tx10p",
-    "fd",
-    "dtr",
-]
-
-rainfall_indictor_list = ["rx1day", "rx5day", "r10", "r95p", "sdii", "cdd", "cwd"]
+indictor_type_list = {
+    "long_term": ["gdd", "pr", "hur", "rsds"],
+    "temperature": ["tnn", "txx", "tn90p", "tx90p", "tn10p", "tx10p", "fd", "dtr"],
+    "rainfall": ["rx1day", "rx5day", "r10", "r95p", "sdii", "cdd", "cwd"],
+}
 
 indictor_list = [
     "rsds",
@@ -25,7 +16,6 @@ indictor_list = [
     "cdd",
     "cwd",
     "r10",
-    "r20",
     "r95p",
     "sdii",
     "rx1day",
@@ -37,9 +27,7 @@ indictor_list = [
     "tnn",
     "txx",
     "fd",
-    # "id",
     "dtr",
-    # "csdi"
 ]
 
 country_list = [
