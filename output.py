@@ -18,13 +18,13 @@ from plot import (
 from utils import (
     get_outlier_result_data_path_by_mode,
     get_delta_change_result_data_path_by_mode,
-    import_indictor,
-    add_region_latlon,
+    get_git_commit_id,
 )
 
 from common.zip_target import ZipTarget
 from common.reshape import split_data_by_column
 from common.sort import sort_by_contry
+
 
 def get_result_data(mode):
     if mode == "era5":
@@ -40,6 +40,7 @@ era5_end_year = 2023
 cmip6_start_year = 2015
 cmip6_end_year = 2100
 
+
 def save_output_data(df: pd.DataFrame, mode: str, target: str):
     Path(f"{target}").mkdir(parents=True, exist_ok=True)
 
@@ -48,7 +49,9 @@ def save_output_data(df: pd.DataFrame, mode: str, target: str):
     else:
         df = df[(df["year"] >= cmip6_start_year) & (df["year"] <= cmip6_end_year)]
 
-    sort_by_contry(df).to_csv(f"{target}/all.csv", index=False, columns=["name", "year"] + indictor_list)
+    sort_by_contry(df).to_csv(
+        f"{target}/all.csv", index=False, columns=["name", "year"] + indictor_list
+    )
     split_data_by_column(df.set_index(["name", "year"]), f"{target}")
 
 
@@ -77,12 +80,13 @@ if __name__ == "__main__":
             local_mode=mode,
         )
         target.add_folder(target_dir)
-        
+
     line_plot(
-            indictor_list,
-            target=f"{result_data_dir}/line.png",
-            post_process=True,
-        )
+        indictor_list,
+        target=f"{result_data_dir}/line.png",
+        post_process=True,
+    )
     target.add_file(f"{result_data_dir}/line.png")
     current = datetime.now().strftime("%Y%m%d_%H%M%S")
-    target.save(f"{result_data_dir}/output_{current}.zip")
+    commit_id = get_git_commit_id()
+    target.save(f"{result_data_dir}/output_{current}_{commit_id}.zip")

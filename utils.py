@@ -507,3 +507,10 @@ def get_delta_change_result_data_path_by_mode(
     if variable is None:
         return f"{result_data_dir}/delta_change_{local_mode}"
     return f"{result_data_dir}/delta_change_{local_mode}/{variable}.csv"
+
+def get_git_commit_id():
+    import subprocess
+    try:
+        return subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()[:7]
+    except:
+        return "unknown"
