@@ -39,7 +39,16 @@ def import_indictor(indictor: str):
     spec.loader.exec_module(module)
     return module
 
-
+def num2zh(num):
+    if num < 0 or num > 10:
+        return num
+    num_dict = {
+        1: '一', 2: '二', 3: '三', 4: '四', 5: '五',
+        6: '六', 7: '七', 8: '八', 9: '九', 10: '十'
+    }
+    
+    return num_dict[num]
+    
 def get_year_from_path(path: str):
     match = re.search(r"(\d{4})\.nc", path)
 
@@ -514,3 +523,21 @@ def get_git_commit_id():
         return subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()[:7]
     except:
         return "unknown"
+    
+def filter_by_year(df, mode):
+    era5_start_year = 1989
+    era5_end_year = 2023
+
+    cmip6_start_year = 2023
+    cmip6_end_year = 2100
+    if mode == "era5":
+        return df[(df["year"] >= era5_start_year) & (df["year"] <= era5_end_year)]
+    else:
+        return df[(df["year"] >= cmip6_start_year) & (df["year"] <= cmip6_end_year)]
+    
+def get_result_data(mode):
+    if mode == "era5":
+        filepath = get_outlier_result_data_path_by_mode("all", mode)
+    else:
+        filepath = get_delta_change_result_data_path_by_mode("all", mode)
+    return pd.read_csv(filepath)

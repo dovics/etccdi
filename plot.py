@@ -27,11 +27,19 @@ from utils import (
     get_outlier_result_data_path_by_mode,
     import_indictor,
     load_daily_data,
+    filter_by_year,
+    get_result_data,
+    num2zh,
 )
 from config import zone_list, target_crs, gdf_crs, mode, mode_list, mode_show_name
 
 province_full_geojson = "static/xinjiang_full.json"
 province_border_geojson = "static/xinjiang.json"
+
+plt.rcParams["font.family"] = "sans-serif"
+plt.rcParams["font.sans-serif"] = ["SimHei", "FangSong", "STIXGeneral"]
+plt.rcParams["axes.unicode_minus"] = False  # 正常显示负号
+plt.rcParams["mathtext.fontset"] = "stix"
 
 
 def draw_border(ax, gdf=None):
@@ -208,8 +216,10 @@ def add_point_map(
     variable: str,
     ax: plt.Axes = None,
     unit=None,
+    show_legend=True,
     legend_location=None,
     color=False,
+    symbol_size="small",
 ):
     symbols = {
         (True, False): "△",
@@ -236,7 +246,7 @@ def add_point_map(
                 symbol,
                 xy=(row["lon"], row["lat"]),
                 transform=gdf_crs,
-                fontsize="small",
+                fontsize=symbol_size,
                 color=colors[up],
             )
 
@@ -260,76 +270,85 @@ def add_point_map(
                 transform=gdf_crs,
                 fontsize="xx-small",
             )
-    handles = [
-        plt.Line2D(
-            [0],
-            [0],
-            marker="^",
-            color="w",
-            label="Significant increase",
-            markeredgecolor=colors[True],
-            markerfacecolor=colors[True],
-            markersize=6,
-        ),
-        plt.Line2D(
-            [0],
-            [0],
-            marker="^",
-            color="w",
-            label="Increase",
-            markeredgecolor=colors[True],
-            markerfacecolor="none",
-            markersize=6,
-        ),
-        plt.Line2D(
-            [0],
-            [0],
-            marker="v",
-            color="w",
-            label="Significant decrease",
-            markeredgecolor=colors[False],
-            markerfacecolor=colors[False],
-            markersize=6,
-        ),
-        plt.Line2D(
-            [0],
-            [0],
-            marker="v",
-            color="w",
-            label="Decrease",
-            markeredgecolor=colors[False],
-            markerfacecolor="none",
-            markersize=6,
-        ),
-    ]
+    if show_legend:
+        handles = [
+            plt.Line2D(
+                [0],
+                [0],
+                marker="^",
+                color="w",
+                label="Significant increase",
+                markeredgecolor=colors[True],
+                markerfacecolor=colors[True],
+                markersize=6,
+            ),
+            plt.Line2D(
+                [0],
+                [0],
+                marker="^",
+                color="w",
+                label="Increase",
+                markeredgecolor=colors[True],
+                markerfacecolor="none",
+                markersize=6,
+            ),
+            plt.Line2D(
+                [0],
+                [0],
+                marker="v",
+                color="w",
+                label="Significant decrease",
+                markeredgecolor=colors[False],
+                markerfacecolor=colors[False],
+                markersize=6,
+            ),
+            plt.Line2D(
+                [0],
+                [0],
+                marker="v",
+                color="w",
+                label="Decrease",
+                markeredgecolor=colors[False],
+                markerfacecolor="none",
+                markersize=6,
+            ),
+        ]
 
-    if unit is not None:
-        title = f"Climate tendency rate \n( ${unit}$ )"
-    else:
-        title = "Climate tendency rate"
+        if unit is not None:
+            title = f"Climate tendency rate \n( ${unit}$ )"
+        else:
+            title = "Climate tendency rate"
 
-    if legend_location is None:
+        if legend_location is None:
+            ax.legend(
+                handles=handles,
+                loc="upper left",
+                fontsize="small",
+                title=title,
+                frameon=False,
+            )
+
+            return
+
         ax.legend(
             handles=handles,
-            loc="upper left",
+            loc="lower left",
+            bbox_to_anchor=legend_location,
             fontsize="small",
             title=title,
             frameon=False,
         )
 
-        return
 
-    ax.legend(
-        handles=handles,
-        loc="lower left",
-        bbox_to_anchor=legend_location,
-        fontsize="small",
-        title=title,
-        frameon=False,
-    )
-
-
-def add_title(ax: plt.Axes, title: str, fontsize="large", location=(0.025, 0.95), rotation=0):
+def add_title(
+    ax: plt.Axes,
+    title: str,
+    fontsize="large",
+    location=(0.025, 0.95),
+    rotation=0,
+    ha="left",
+    va="center",
+):
     minx, maxx = ax.get_xlim()
     miny, maxy = ax.get_ylim()
     ylen = maxy - miny
@@ -338,8 +357,8 @@ def add_title(ax: plt.Axes, title: str, fontsize="large", location=(0.025, 0.95)
         x=minx + xlen * location[0],
         y=miny + ylen * location[1],
         s=title,
-        ha="left",
-        va="center",
+        ha=ha,
+        va=va,
         fontsize=fontsize,
         fontweight="bold",
         rotation=rotation,
@@ -568,7 +587,10 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False, target
                 f"result_data/mean/{indictor}_{local_mode}.csv", index=False
             )
         mean_df.to_csv(
-            f"result_data/mean/all_{local_mode}.csv", index=True, float_format="%.2f", columns=indictor_list
+            f"result_data/mean/all_{local_mode}.csv",
+            index=True,
+            float_format="%.2f",
+            columns=indictor_list,
         )
 
     if target is None:
@@ -633,6 +655,7 @@ def draw_compare_map(indictor_list: list, time: str):
 
     plt.savefig(f"result_data/compare_{time}.png", dpi=300)
 
+
 def get_filter(all_data):
     Q1 = np.percentile(all_data, 25)
     Q3 = np.percentile(all_data, 75)
@@ -667,28 +690,52 @@ def map_plot_multi_mode(
         for mode in mode_list:
             i += 1
             ax = fig.add_subplot(row, col, i, projection=target_crs)
+
             draw_base_map(ax=ax, clip=True)
-            add_title(ax, f"{module.show_name} (${module.unit}$)")
+            if mode == "era5":
+                add_title(
+                    ax,
+                    f"{module.show_name} (${module.unit}$)",
+                    location=(-0.05, 0.5),
+                    rotation=90,
+                    fontsize=28,
+                    ha="center",
+                    va="center",
+                )
+                add_title_rectangle(ax, (-0.1, 0), (0.1, 1))
 
             add_point_map(
                 slope[mode],
                 indictor,
                 ax,
                 unit=module.unit + "\cdot 10a^{-1}",
-                legend_location=(0, 0.625),
+                show_legend=mode == "era5",
+                legend_location=(0, 0.75),
                 color=True,
+                symbol_size="large",
             )
+            if row * col <= 26:
+                add_number(ax, f"({chr(96 + i)})")
 
-            add_number(ax, f"({chr(96 + i)})")
             if i <= col:
                 add_title(
-                    ax, f"{mode_show_name[mode]}", fontsize=24, location=(0.1, 1.05)
+                    ax,
+                    f"{mode_show_name[mode]}",
+                    location=(0.5, 1.05),
+                    ha="center",
+                    va="center",
+                    fontsize=28,
                 )
-
+                add_title_rectangle(ax)
+            add_outline_rectangle(ax)
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.savefig(target, dpi=300)
 
-rolling_window = 5
+
+rolling_window = 1
+same_y_axis = False
+
+
 def line_plot_by_zone(indictor_list: list, target="result_data/line_by_zone.png"):
     row = 4  # zone count
     col = len(indictor_list)
@@ -699,23 +746,14 @@ def line_plot_by_zone(indictor_list: list, target="result_data/line_by_zone.png"
         ax_dict[i] = {}
         for j, indictor in enumerate(indictor_list):
             index = i * col + j + 1
-            ax_dict[i][indictor] = fig.add_subplot(row, col, index)
-            module = import_indictor(indictor)
-            add_title(ax_dict[i][indictor], module.show_name)
-            add_number(ax_dict[i][indictor], f"({chr(96 + index)})")
-
+            ax = fig.add_subplot(row, col, index)
+            set_spine(ax)
+            ax_dict[i][indictor] = ax
+    percentile_90_list = []
+    percentile_10_list = []
     for mode in mode_list:
-        if mode != "era5":
-            df = pd.read_csv(
-                get_delta_change_result_data_path_by_mode("all", local_mode=mode),
-                index_col=["year"],
-            )
-        else:
-            df = pd.read_csv(
-                get_outlier_result_data_path_by_mode("all", local_mode=mode),
-                index_col=["year"],
-            )
-
+        df = get_result_data(mode)
+        df = filter_by_year(df, mode)
         df["zone"] = df["name"].apply(
             lambda x: zone_list[x] if x in zone_list else "Unknown"
         )
@@ -725,6 +763,8 @@ def line_plot_by_zone(indictor_list: list, target="result_data/line_by_zone.png"
             zone_df = zone_df.drop(columns="name").groupby("year")
             percentile_10 = zone_df.quantile(0.1).rolling(window=rolling_window).mean()
             percentile_90 = zone_df.quantile(0.9).rolling(window=rolling_window).mean()
+            percentile_90_list.append(percentile_90)
+            percentile_10_list.append(percentile_10)
             mean_df = zone_df.mean().rolling(window=rolling_window).mean()
             for indictor in indictor_list:
                 ax = ax_dict[zone][indictor]
@@ -744,21 +784,94 @@ def line_plot_by_zone(indictor_list: list, target="result_data/line_by_zone.png"
                     alpha=0.2,
                     label=f"{mode} 10%-90% range",
                 )
-    
-    for i in range(row):
-        for j, indictor in enumerate(indictor_list):
-            module = import_indictor(indictor)
-            add_title(ax_dict[i][indictor], module.show_name)
-            add_number(ax_dict[i][indictor], f"({chr(96 + index)})")
+                ax.set_xlabel("Year", fontsize=16)
+
+    if same_y_axis:
+        max_df = pd.concat(percentile_90_list).max() * 1.11
+        min_df = pd.concat(percentile_10_list).min() * 0.9
+        for indictor in indictor_list:
+            for i in range(row):
+                ax = ax_dict[i][indictor]
+                ax.set_ylim(min_df[indictor], max_df[indictor])
+    elif "rsds" in indictor_list:
+        for i in range(row):
+            ax = ax_dict[i]["rsds"]
+            ylim = ax.get_ylim()
+            ax.set_ylim(ylim[0] * 0.95, ylim[1] * 1.05)
 
     for i in range(row):
+        ax = ax_dict[i][indictor_list[-1]]
         add_title(
-            ax_dict[i][indictor_list[0]],
-            f"Zone {i + 1}",
-            fontsize=24,
-            location=(-0.15, 0.5),
+            ax,
+            f"区域{num2zh(i+1)}",
+            fontsize=20,
+            location=(1.025, 0.5),
             rotation=90,
         )
-        
-    plt.subplots_adjust(wspace=0.1, hspace=0)
+        add_title_rectangle(ax, location=(1, 0), size=(0.1, 1))
+
+    for indictor in indictor_list:
+        module = import_indictor(indictor)
+        ax = ax_dict[0][indictor]
+        add_title(
+            ax,
+            f"{module.show_name}(${module.unit}$)",
+            location=(0.5, 1.05),
+            fontsize=20,
+            ha="center",
+            va="center",
+        )
+        add_title_rectangle(ax)
+
+    if row * col < 26:
+        for j in range(row):
+            for i in range(col):
+                ax = ax_dict[j][indictor_list[i]]
+                index = i * row + j + 1
+                add_number(ax, f"({chr(96 + index)})")
+
+    first_ax = ax_dict[0][indictor_list[0]]
+    handles, _ = first_ax.get_legend_handles_labels()
+    first_ax.legend(
+        handles=[handles[i] for i in range(0, len(handles), 2)],
+        loc="upper left",
+        labels=[mode_show_name[mode] for mode in mode_list],
+    )
+
+    plt.subplots_adjust(wspace=0.125, hspace=0)
     plt.savefig(target, dpi=300)
+
+
+def add_title_rectangle(ax: plt.Axes, location=(0, 1), size=(1, 0.1)):
+    rect = mpatches.Rectangle(
+        location,
+        size[0],
+        size[1],
+        linewidth=2,
+        edgecolor="black",
+        facecolor="lightgrey",
+        transform=ax.transAxes,
+        clip_on=False,
+    )
+
+    ax.add_patch(rect)
+
+
+def add_outline_rectangle(ax: plt.Axes):
+    rect = mpatches.Rectangle(
+        (0, 0),
+        1,
+        1,
+        linewidth=2,
+        edgecolor="black",
+        facecolor="none",
+        transform=ax.transAxes,
+        clip_on=False,
+    )
+    ax.add_patch(rect)
+
+
+def set_spine(ax: plt.Axes, color="black", linewidth=2):
+    for spine in ["left", "right", "bottom", "top"]:
+        ax.spines[spine].set_color("black")
+        ax.spines[spine].set_linewidth(2)

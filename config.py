@@ -145,11 +145,11 @@ mode_list = [
 ]  # "ssp126", "ssp245", "ssp370", "ssp585"
 
 mode_show_name = {
-    "era5": "Historical",
-    "ssp126": "SSP126",
-    "ssp245": "SSP245",
-    "ssp370": "SSP370",
-    "ssp585": "SSP585",
+    "era5": "历史时期",
+    "ssp126": "SSP1-26",
+    "ssp245": "SSP2-45",
+    "ssp370": "SSP3-70",
+    "ssp585": "SSP5-85",
 }
 
 downscaling_methods = {

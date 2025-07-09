@@ -19,6 +19,8 @@ from utils import (
     get_outlier_result_data_path_by_mode,
     get_delta_change_result_data_path_by_mode,
     get_git_commit_id,
+    filter_by_year,
+    get_result_data,
 )
 
 from common.zip_target import ZipTarget
@@ -26,29 +28,9 @@ from common.reshape import split_data_by_column
 from common.sort import sort_by_contry
 
 
-def get_result_data(mode):
-    if mode == "era5":
-        filepath = get_outlier_result_data_path_by_mode("all", mode)
-    else:
-        filepath = get_delta_change_result_data_path_by_mode("all", mode)
-    return pd.read_csv(filepath)
-
-
-era5_start_year = 1989
-era5_end_year = 2023
-
-cmip6_start_year = 2015
-cmip6_end_year = 2100
-
-
 def save_output_data(df: pd.DataFrame, mode: str, target: str):
     Path(f"{target}").mkdir(parents=True, exist_ok=True)
-
-    if mode == "era5":
-        df = df[(df["year"] >= era5_start_year) & (df["year"] <= era5_end_year)]
-    else:
-        df = df[(df["year"] >= cmip6_start_year) & (df["year"] <= cmip6_end_year)]
-
+    df = filter_by_year(df, mode)
     sort_by_contry(df).to_csv(
         f"{target}/all.csv", index=False, columns=["name", "year"] + indictor_list
     )

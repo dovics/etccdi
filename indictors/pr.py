@@ -13,7 +13,7 @@ from config import pr_colormap
 # PR, Precipitation: Annual total precipitation.
 indicator_name = "pr"
 unit = "mm \cdot d^{-1}"
-show_name = "PR"
+show_name = "Pr"
 
 
 def process_pr(ds: xr.Dataset) -> xr.DataArray:
