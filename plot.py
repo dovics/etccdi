@@ -677,7 +677,7 @@ def map_plot_multi_mode(
 ):
     slope = {}
     for mode in mode_list:
-        point_df = pd.read_csv(get_outlier_result_data_path_by_mode("all", mode))
+        point_df = filter_by_year(get_result_data(mode), mode)
         slope[mode] = add_region_latlon(calculate_slope(point_df))
 
     i = 0

@@ -528,7 +528,7 @@ def filter_by_year(df, mode):
     era5_start_year = 1989
     era5_end_year = 2023
 
-    cmip6_start_year = 2023
+    cmip6_start_year = 2024
     cmip6_end_year = 2100
     if mode == "era5":
         return df[(df["year"] >= era5_start_year) & (df["year"] <= era5_end_year)]
