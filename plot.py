@@ -220,6 +220,7 @@ def add_point_map(
     legend_location=None,
     color=False,
     symbol_size="small",
+    show_value=True,
 ):
     symbols = {
         (True, False): "△",
@@ -259,17 +260,18 @@ def add_point_map(
             # )
 
             # low
-            value = row[variable]
-            if value >= 10:
-                formatted_value = f"{value:.1f}"
-            else:
-                formatted_value = f"{value:.2f}"
-            ax.annotate(
-                formatted_value,
-                xy=(row["lon"] - 0.1, row["lat"] - 0.4),
-                transform=gdf_crs,
-                fontsize="xx-small",
-            )
+            if show_value:
+                value = row[variable]
+                if value >= 10:
+                    formatted_value = f"{value:.1f}"
+                else:
+                    formatted_value = f"{value:.2f}"
+                ax.annotate(
+                    formatted_value,
+                    xy=(row["lon"] - 0.1, row["lat"] - 0.4),
+                    transform=gdf_crs,
+                    fontsize="xx-small",
+                )
     if show_legend:
         handles = [
             plt.Line2D(
@@ -439,7 +441,7 @@ def draw_line(ax: plt.Axes):
     ax.add_feature(shape_feature)
 
 
-def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
+def calculate_slope(df: pd.DataFrame, method="yue_wang_mk", save_path: str = None, with_value: bool = True):
     def process_slope_by_yue_wang_mk(county_df: pd.DataFrame):
         import pymannkendall as mk
 
@@ -448,8 +450,9 @@ def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
             if c == "year" or c == "name":
                 continue
             mk_result = mk.yue_wang_modification_test(county_df[c])
-            result[c] = round(mk_result.slope * 10, 2)
-            result[c + "_up"] = mk_result.h
+            if with_value:
+                result[c] = round(mk_result.slope * 10, 2)
+            result[c + "_up"] = mk_result.s > 0
             result[c + "_sign"] = mk_result.p < 0.05
         return result
 
@@ -459,8 +462,8 @@ def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
             if c == "year":
                 continue
             line = linregress(county_df["year"], county_df[c])
-
-            result[c] = round(line.slope * 10, 2)
+            if with_value:
+                result[c] = round(line.slope * 10, 2)
             result[c + "_up"] = line.slope > 0
             result[c + "_sign"] = line.pvalue < 0.05
         return result
@@ -473,6 +476,8 @@ def calculate_slope(df: pd.DataFrame, method="yue_wang_mk"):
         raise ValueError("method not support")
 
     slope_result = df.groupby("name").apply(process_slope)
+    if save_path is not None:
+        slope_result.to_csv(save_path)
     return slope_result
 
 
@@ -678,7 +683,7 @@ def map_plot_multi_mode(
     slope = {}
     for mode in mode_list:
         point_df = filter_by_year(get_result_data(mode), mode)
-        slope[mode] = add_region_latlon(calculate_slope(point_df))
+        slope[mode] = add_region_latlon(calculate_slope(point_df, save_path=f"result_data/{mode}/slope.csv", with_value=False))
 
     i = 0
     row = len(indictor_list)
@@ -712,7 +717,8 @@ def map_plot_multi_mode(
                 show_legend=mode == "era5",
                 legend_location=(0, 0.75),
                 color=True,
-                symbol_size="large",
+                symbol_size="xx-large",
+                show_value=False
             )
             if row * col <= 26:
                 add_number(ax, f"({chr(96 + i)})")

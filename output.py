@@ -40,6 +40,17 @@ def save_output_data(df: pd.DataFrame, mode: str, target: str):
 if __name__ == "__main__":
     target = ZipTarget()
 
+    for mode in mode_list:
+        target_dir = f"{result_data_dir}/{mode}"
+        result_data = get_result_data(mode)
+        save_output_data(result_data, mode, target_dir)
+        map_plot(
+            indictor_list,
+            target=f"{target_dir}/map.png",
+            local_mode=mode,
+        )
+        target.add_folder(target_dir)
+        
     for indictor_type in indictor_type_list:
         map_plot_multi_mode(
             indictor_type_list[indictor_type],
@@ -51,17 +62,6 @@ if __name__ == "__main__":
         )
         target.add_file(f"{result_data_dir}/map_{indictor_type}.png")
         target.add_file(f"{result_data_dir}/line_{indictor_type}.png")
-
-    for mode in mode_list:
-        target_dir = f"{result_data_dir}/{mode}"
-        result_data = get_result_data(mode)
-        save_output_data(result_data, mode, target_dir)
-        map_plot(
-            indictor_list,
-            target=f"{target_dir}/map.png",
-            local_mode=mode,
-        )
-        target.add_folder(target_dir)
 
     line_plot(
         indictor_list,
