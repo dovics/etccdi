@@ -51,6 +51,14 @@ def draw_border(ax, gdf=None):
 
     ax.add_feature(provinces, linewidth=1)
 
+def draw_country_border(ax, gdf=None, alpha=1):
+    if gdf is None:
+        gdf = gpd.read_file(province_full_geojson)
+    provinces = cfeat.ShapelyFeature(
+        gdf.geometry, gdf_crs, edgecolor="gray", alpha=alpha, facecolor="none"
+    )
+
+    ax.add_feature(provinces, linewidth=1)
 
 def new_plot(show_border=True, show_grid=True, show_country=False, subregions=None):
     fig = plt.figure(figsize=(6, 4), dpi=200)
@@ -169,7 +177,7 @@ def draw_base_map(gdf: gpd.GeoDataFrame = None, clip=True, ax=None):
 
     draw_border(ax, gdf=gdf)
     draw_north_arrow(ax)
-    draw_line(ax)
+    draw_line(ax, color="red")
     add_scaler(ax, length=200)
 
 
@@ -210,6 +218,10 @@ def draw_latlon_map(
     if show_colorbar:
         plt.colorbar(contour, ax=ax, pad=0.05, fraction=0.03)
 
+significant_show_label = "显著" # significant
+increase_show_label = "上升" # increase
+decrease_show_label = "下降" # decrease
+climate_tendency_rate_label = "气候变率" # Climate tendency rate
 
 def add_point_map(
     df: pd.DataFrame,
@@ -221,6 +233,7 @@ def add_point_map(
     color=False,
     symbol_size="small",
     show_value=True,
+    legend_size=14,
 ):
     symbols = {
         (True, False): "△",
@@ -279,53 +292,52 @@ def add_point_map(
                 [0],
                 marker="^",
                 color="w",
-                label="Significant increase",
+                label=significant_show_label + increase_show_label,
                 markeredgecolor=colors[True],
                 markerfacecolor=colors[True],
-                markersize=6,
+                markersize=legend_size,
             ),
             plt.Line2D(
                 [0],
                 [0],
                 marker="^",
                 color="w",
-                label="Increase",
+                label=increase_show_label,
                 markeredgecolor=colors[True],
                 markerfacecolor="none",
-                markersize=6,
+                markersize=legend_size,
             ),
             plt.Line2D(
                 [0],
                 [0],
                 marker="v",
                 color="w",
-                label="Significant decrease",
+                label=significant_show_label + decrease_show_label,
                 markeredgecolor=colors[False],
                 markerfacecolor=colors[False],
-                markersize=6,
+                markersize=legend_size,
             ),
             plt.Line2D(
                 [0],
                 [0],
                 marker="v",
                 color="w",
-                label="Decrease",
+                label=decrease_show_label,
                 markeredgecolor=colors[False],
                 markerfacecolor="none",
-                markersize=6,
+                markersize=legend_size,
             ),
         ]
 
+        title = climate_tendency_rate_label
         if unit is not None:
-            title = f"Climate tendency rate \n( ${unit}$ )"
-        else:
-            title = "Climate tendency rate"
+            title += f" \n( ${unit}$ )"
 
         if legend_location is None:
             ax.legend(
                 handles=handles,
                 loc="upper left",
-                fontsize="small",
+                title_fontsize=legend_size,
                 title=title,
                 frameon=False,
             )
@@ -336,7 +348,8 @@ def add_point_map(
             handles=handles,
             loc="lower left",
             bbox_to_anchor=legend_location,
-            fontsize="small",
+            fontsize=legend_size,
+            title_fontsize=legend_size,
             title=title,
             frameon=False,
         )
@@ -424,7 +437,7 @@ def draw_north_arrow(
     ax.add_patch(triangle)
 
 
-def draw_line(ax: plt.Axes):
+def draw_line(ax: plt.Axes, color="black"):
     line_file = "static/line/line1.shp"
 
     gdf = gpd.read_file(line_file)
@@ -434,7 +447,7 @@ def draw_line(ax: plt.Axes):
         ccrs.PlateCarree(),
         linewidth=2,
         alpha=0.7,
-        edgecolor="black",
+        edgecolor=color,
         facecolor="none",
     )
 
@@ -696,6 +709,7 @@ def map_plot_multi_mode(
             i += 1
             ax = fig.add_subplot(row, col, i, projection=target_crs)
 
+            #draw_country_border(ax=ax)
             draw_base_map(ax=ax, clip=True)
             if mode == "era5":
                 add_title(
@@ -715,10 +729,12 @@ def map_plot_multi_mode(
                 ax,
                 unit=module.unit + "\cdot 10a^{-1}",
                 show_legend=mode == "era5",
-                legend_location=(0, 0.75),
+                legend_location=(0, 0.6),
                 color=True,
                 symbol_size="xx-large",
-                show_value=False
+                show_value=False,
+                legend_size="xx-large",
+                legend_size=14,
             )
             if row * col <= 26:
                 add_number(ax, f"({chr(96 + i)})")

@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 
 indictor_type_list = {
     "long_term": ["gdd", "pr", "hur", "rsds"],
-    "temperature": ["tnn", "txx", "tn90p", "tx90p", "tn10p", "tx10p", "fd", "dtr"],
-    "rainfall": ["rx1day", "rx5day", "r10", "r95p", "sdii", "cdd", "cwd"],
+    "temperature1": ["tnn", "txx", "tn90p", "tx90p"],
+    "temperature2":  ["tn10p", "tx10p", "fd", "dtr"],
+    "rainfall1": ["rx1day", "rx5day", "r10", "r95p"],
+    "rainfall2": ["sdii", "cdd", "cwd"],
 }
 
 indictor_list = [

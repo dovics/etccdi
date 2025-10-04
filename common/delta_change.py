@@ -9,7 +9,6 @@ from config import indictor_list
 from logutil import info
 from common.sort import sort_by_contry
 
-
 def delta_change_by_scale(
     df: pd.DataFrame,
     base_df: pd.DataFrame,
@@ -65,7 +64,7 @@ def delta_change_by_mean(
         variable
     ].mean()
     result = df[variable] - start_mean + base_mean
-    return result.abs()
+    return result
 
 
 def delta_change_old(
@@ -104,7 +103,7 @@ def delta_change_indictor(
     df: pd.DataFrame, base_df: pd.DataFrame, mode: str
 ) -> pd.DataFrame:
     result = df.copy()
-    for indictor in ["rsds", "hur", "pr", "cwd", "cdd", "r10", "r20", "r95p","sdii", "rx1day", "rx5day", "tnn"]:
+    for indictor in ["rsds", "hur", "pr", "cwd", "cdd", "r10", "r20", "r95p","sdii", "rx1day", "rx5day"]:
         if indictor in df.columns:
             result[indictor] = delta_change_by_scale(df, base_df, indictor)
 
@@ -112,6 +111,9 @@ def delta_change_indictor(
         if indictor in df.columns:
             result[indictor] = delta_change_old(df, base_df, indictor)
 
+    for indictor in ["tnn"]:
+        if indictor in df.columns:
+            result[indictor] = delta_change_by_mean(df, base_df, indictor)
     return result
 
 
