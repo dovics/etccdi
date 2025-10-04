@@ -233,7 +233,7 @@ def add_point_map(
     color=False,
     symbol_size="small",
     show_value=True,
-    legend_size=14,
+    legend_size=10,
 ):
     symbols = {
         (True, False): "△",
@@ -733,7 +733,6 @@ def map_plot_multi_mode(
                 color=True,
                 symbol_size="xx-large",
                 show_value=False,
-                legend_size="xx-large",
                 legend_size=14,
             )
             if row * col <= 26:
