@@ -233,7 +233,7 @@ def add_point_map(
     color=False,
     symbol_size="small",
     show_value=True,
-    legend_size=10,
+    legend_size=14,
 ):
     symbols = {
         (True, False): "△",
