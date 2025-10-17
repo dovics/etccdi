@@ -417,7 +417,7 @@ def map_plot(indictor_list: list):
         add_number(ax, f"({chr(97 + i)})")
         i += 1
 
-    plt.savefig(f"result_data/map_{mode}.png", dpi=300)
+    plt.savefig(f"result_data/map_{mode}.png", dpi=600)
 
 
 def drop_unuseful_columns(df: pd.DataFrame):

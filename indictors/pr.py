@@ -22,7 +22,7 @@ def process_pr(ds: xr.Dataset) -> xr.DataArray:
 
 def draw(df: pd.DataFrame, ax=None):
     draw_latlon_map(df, indicator_name, clip=True, ax=ax, cmap=pr_colormap)
-    add_title(ax, f"PR (${unit}$)")
+    add_title(ax, f"Pr (${unit}$)")
 
 def calculate(process: bool = True):
     if process:

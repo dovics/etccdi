@@ -18,7 +18,7 @@ from config import pr_colormap
 base_ds = merge_base_years_period("pr", full_year=False)
 r95 = percentile_doy(base_ds["pr"], per=95).sel(percentiles=95)
 indicator_name = "r95p"
-unit = "d"
+unit = "mm"
 
 def process_r95p(ds: xr.Dataset):
     result = days_over_precip_thresh(ds["pr"], r95, freq="YS")
