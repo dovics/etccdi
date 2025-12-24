@@ -24,6 +24,7 @@ from config import (
     period_start,
     period_end,
     use_cache,
+    cmip6_model,
     cmip6_data_dir,
     cmip6_model_list,
     deltachange_methods,
@@ -68,21 +69,33 @@ def load_era5_date(variable: str, year: str) -> xr.Dataset:
 
 def load_cmip6_data(variable: str, year: str, local_mode: str) -> xr.Dataset:
     ds_list = []
-    for model in cmip6_model_list:
-        path = (
-            Path(cmip6_data_dir)
-            .joinpath(model)
-            .joinpath(
-                f"{variable}_{local_mode}_{model}_{deltachange_methods[variable]}.zarr"
+    if cmip6_model == "all":
+        for model in cmip6_model_list:
+            path = (
+                Path(cmip6_data_dir)
+                .joinpath(model)
+                .joinpath(
+                    f"{variable}_{local_mode}_{model}_{deltachange_methods[variable]}.zarr"
+                )
             )
-        )
-        ds = xr.open_zarr(path)    
-        ds = ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"))
-        ds_list.append(ds)
-    info(f"concat {len(ds_list)} models")
-    concat_ds = xr.concat(ds_list, dim="model")
-    return concat_ds.mean(dim="model")
+            ds = xr.open_zarr(path)    
+            ds = ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"))
+            ds_list.append(ds)
+        info(f"concat {len(ds_list)} models")
+        concat_ds = xr.concat(ds_list, dim="model")
+        return concat_ds.mean(dim="model")
 
+    path = (
+        Path(cmip6_data_dir)
+        .joinpath(cmip6_model)
+        .joinpath(
+            f"{variable}_{local_mode}_{cmip6_model}_{deltachange_methods[variable]}.zarr"
+        )
+    )
+    
+    ds = xr.open_zarr(path)    
+    ds = ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"))
+    return ds        
 
 def get_cf_daily_date_path(variable: str, year: str, local_mode: str):
     if Path(intermediate_data_dir).exists() == False:

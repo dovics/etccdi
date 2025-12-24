@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 import matplotlib.ticker as mticker
 from matplotlib.path import Path
 
+from pathlib import Path as FilePath
 import cartopy.crs as ccrs
 from cartopy.mpl.patch import geos_to_path
 from cartopy.feature import ShapelyFeature
@@ -31,7 +32,7 @@ from utils import (
     get_result_data,
     num2zh,
 )
-from config import zone_list, target_crs, gdf_crs, mode, mode_list, mode_show_name
+from config import zone_list, target_crs, gdf_crs, mode, mode_list, mode_show_name, result_data_dir
 
 province_full_geojson = "static/xinjiang_full.json"
 province_border_geojson = "static/xinjiang.json"
@@ -522,7 +523,7 @@ def map_plot(indictor_list: list, col=3, local_mode="era5", target=None):
         add_number(ax, f"({chr(97 + i)})")
         i += 1
     if target is None:
-        target = f"result_data/map_{local_mode}.png"
+        target = f"{result_data_dir}/map_{local_mode}.png"
     plt.savefig(target, dpi=300)
 
 
@@ -582,6 +583,8 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False, target
         percentile_90 = df.quantile(0.9).rolling(window=5).mean()
 
         mean_df = df.mean()
+        if FilePath(f"{result_data_dir}/mean").exists() == False:
+            FilePath(f"{result_data_dir}/mean").mkdir()
 
         for indictor in indictor_list:
             mean_df[indictor].plot(
@@ -602,17 +605,17 @@ def line_plot(indictor_list: list, delta_change=True, post_process=False, target
                 label=f"{local_mode} 10%-90% range",
             )
             mean_df[indictor].to_csv(
-                f"result_data/mean/{indictor}_{local_mode}.csv", index=False
+                f"{result_data_dir}/mean/{indictor}_{local_mode}.csv", index=False
             )
         mean_df.to_csv(
-            f"result_data/mean/all_{local_mode}.csv",
+            f"{result_data_dir}/mean/all_{local_mode}.csv",
             index=True,
             float_format="%.2f",
             columns=indictor_list,
         )
 
     if target is None:
-        target = "result_data/line.png"
+        target = f"{result_data_dir}/line.png"
     plt.savefig(target, dpi=300)
 
 
@@ -671,7 +674,7 @@ def draw_compare_map(indictor_list: list, time: str):
         plt.colorbar(cmip6_contour, ax=cmip6_ax, pad=0.05, fraction=0.03)
         plt.colorbar(era5_contour, ax=era5_ax, pad=0.05, fraction=0.03)
 
-    plt.savefig(f"result_data/compare_{time}.png", dpi=300)
+    plt.savefig(f"{result_data_dir}/compare_{time}.png", dpi=300)
 
 
 def get_filter(all_data):
@@ -691,12 +694,12 @@ def get_filter(all_data):
 
 def map_plot_multi_mode(
     indictor_list,
-    target="result_data/map_multi_mode.png",
+    target=f"{result_data_dir}/map_multi_mode.png",
 ):
     slope = {}
     for mode in mode_list:
         point_df = filter_by_year(get_result_data(mode), mode)
-        slope[mode] = add_region_latlon(calculate_slope(point_df, save_path=f"result_data/{mode}/slope.csv", with_value=False))
+        slope[mode] = add_region_latlon(calculate_slope(point_df, save_path=f"{result_data_dir}/{mode}/slope.csv", with_value=False))
 
     i = 0
     row = len(indictor_list)
@@ -757,7 +760,7 @@ rolling_window = 1
 same_y_axis = False
 
 
-def line_plot_by_zone(indictor_list: list, target="result_data/line_by_zone.png"):
+def line_plot_by_zone(indictor_list: list, target=f"{result_data_dir}/line_by_zone.png"):
     row = 4  # zone count
     col = len(indictor_list)
     ax_dict = {}

@@ -16,8 +16,6 @@ from plot import (
 )
 
 from utils import (
-    get_outlier_result_data_path_by_mode,
-    get_delta_change_result_data_path_by_mode,
     get_git_commit_id,
     filter_by_year,
     get_result_data,

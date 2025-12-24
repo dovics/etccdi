@@ -118,7 +118,7 @@ zone_list = {
     "于田县": 3,
 }
 
-
+cmip6_model="ACCESS-ESM1-5"
 cmip6_model_list = [
     "ACCESS-CM2",
     "ACCESS-ESM1-5",
@@ -175,7 +175,7 @@ deltachange_methods = {
 
 cmip6_data_dir = "Z:/fangjiamin/bias_correction/result_data"
 era5_data_dir = "era5_data"
-result_data_dir = "result_data"
+result_data_dir = f"result_data/{cmip6_model}"
 intermediate_data_dir = "intermediate_data"
 
 period_start = "10-01"
@@ -206,5 +206,5 @@ pr_colormap = plt.get_cmap("Blues")
 
 max_outlier = 5
 
-mode = "ssp245"
-base_mode = "era5"
+mode = "ssp585"
+base_mode="era5"

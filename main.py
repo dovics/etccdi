@@ -67,12 +67,11 @@ def merge_indictors(indictor_list: list):
     return combined_df
             
 if __name__ == "__main__":
-    calculate_indictors(indictor_list)
+    # calculate_indictors(indictor_list)
     merge_indictors(indictor_list)
     df = merge_post_process_indictors(indictor_list)
-    if mode == "era5":
-        process_outlier_grid_all(df)
-    else:
+    process_outlier_grid_all(df)
+    if mode != "era5":
         process_delta_change_all(post_process=True)
-    map_plot(indictor_list, local_mode=mode)
-    line_plot(indictor_list, post_process=True)
+    # map_plot(indictor_list, local_mode=mode)
+    # line_plot(indictor_list, post_process=True)
