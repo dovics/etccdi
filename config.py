@@ -118,7 +118,7 @@ zone_list = {
     "于田县": 3,
 }
 
-cmip6_model="ACCESS-ESM1-5"
+cmip6_model="BCC-CSM2-MR"
 cmip6_model_list = [
     "ACCESS-CM2",
     "ACCESS-ESM1-5",

@@ -67,7 +67,7 @@ def merge_indictors(indictor_list: list):
     return combined_df
             
 if __name__ == "__main__":
-    # calculate_indictors(indictor_list)
+    #calculate_indictors(indictor_list)
     merge_indictors(indictor_list)
     df = merge_post_process_indictors(indictor_list)
     process_outlier_grid_all(df)
